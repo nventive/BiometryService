@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GeneratedSerializers.Json" Version="0.2.0-dev.10" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0-preview.5.20278.1" />
+    <PackageReference Include="Reactive.Annex" Version="0.2.0-dev.14" />
+    <PackageReference Include="System.Reactive.Linq" Version="4.4.1" />
+    <PackageReference Include="Uno.UI" Version="3.0.11" />
+  </ItemGroup>
+
+</Project>

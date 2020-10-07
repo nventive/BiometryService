@@ -1,0 +1,26 @@
+﻿steps:
+- checkout: none
+
+- task: DownloadBuildArtifacts@0
+  inputs:
+    buildType: current
+    downloadType: single
+    artifactName: $(ArtifactName)
+
+- task: NuGetToolInstaller@0
+  displayName: 'Install NuGet $(NUGET_VERSION)'
+  inputs:
+    versionSpec: $(NUGET_VERSION)
+    checkLatest: false
+
+- task: NuGetCommand@2
+  displayName: 'Push to Nuget.org'
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/$(ArtifactName)/*.nupkg'
+    nuGetFeedType: 'external'
+    publishFeedCredentials: 'NuGet.org - nventive'
+
+- task: PostBuildCleanup@3
+  displayName: 'Post-Build cleanup :  Cleanup files to keep build server clean!'
+  condition: always()

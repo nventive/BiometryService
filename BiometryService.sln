@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30517.126
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiometryService.Uno", "Src\BiometryService.Uno\BiometryService.Uno.csproj", "{38D70859-8CA3-4E16-B696-C5FB404B3D82}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{38D70859-8CA3-4E16-B696-C5FB404B3D82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38D70859-8CA3-4E16-B696-C5FB404B3D82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38D70859-8CA3-4E16-B696-C5FB404B3D82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38D70859-8CA3-4E16-B696-C5FB404B3D82}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {466F4F5D-F314-4778-AFB5-9D7814B60E5C}
+	EndGlobalSection
+EndGlobal
