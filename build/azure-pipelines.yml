@@ -16,7 +16,7 @@ variables:
 - name: ArtifactName
   value: Packages
 - name: SolutionFileName # Example: MyApplication.sln
-  value: MessageDialog.sln
+  value: BiometryService.sln
 - name: IsReleaseBranch # Should this branch name use the release stage
   value: $[or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/feature/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'))]
 
