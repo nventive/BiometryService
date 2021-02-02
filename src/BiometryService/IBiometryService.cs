@@ -45,6 +45,6 @@ namespace BiometryService
 		/// <param name="ct"></param>
 		/// <param name="key"></param>
 		/// <returns></returns>
-		Task<(BiometryAuthenticationResult result, string value)> Decrypt(CancellationToken ct, string key);
+		Task<BiometryAuthenticationResult> Decrypt(CancellationToken ct, string key, out string value);
 	}
 }

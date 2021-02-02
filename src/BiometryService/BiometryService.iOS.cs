@@ -119,7 +119,7 @@ namespace BiometryService
 		}
 
 		/// <inheritdoc />
-		public Task<(BiometryAuthenticationResult result, string value)> Decrypt(CancellationToken ct, string key)
+		public Task<BiometryAuthenticationResult> Decrypt(CancellationToken ct, string key, out string value)
 		{
 			throw new NotImplementedException();
 		}
