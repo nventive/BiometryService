@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>8de2a70f-51ef-4023-96c5-f51b4ae6b882</ProjectGuid>
+    <ProjectGuid>{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}</ProjectGuid>
     <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -87,6 +87,12 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\values\Styles.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\BiometryService\BiometryService.csproj">
+      <Project>{38d70859-8ca3-4e16-b696-c5fb404b3d82}</Project>
+      <Name>BiometryService</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="..\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems" Label="Shared" Condition="Exists('..\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems')" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />

@@ -9,5 +9,6 @@
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 		<TextBlock Text="Hello, world!" Margin="20" FontSize="30" />
-    </Grid>
+		<Button x:Name="Btn_Authenticate" Content="Authenticate" Click=""/>
+	</Grid>
 </Page>

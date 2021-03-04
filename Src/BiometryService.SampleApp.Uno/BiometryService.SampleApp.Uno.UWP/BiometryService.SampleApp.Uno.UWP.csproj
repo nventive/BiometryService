@@ -18,7 +18,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>91e2f2a0-0862-4291-b756-7a14df3f277a</ProjectGuid>
+    <ProjectGuid>{91E2F2A0-0862-4291-B756-7A14DF3F277A}</ProjectGuid>
     <OutputType>AppContainerExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BiometryService.SampleApp.Uno</RootNamespace>
@@ -127,6 +127,10 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
+    <ProjectReference Include="..\..\BiometryService\BiometryService.csproj">
+      <Project>{38d70859-8ca3-4e16-b696-c5fb404b3d82}</Project>
+      <Name>BiometryService</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />

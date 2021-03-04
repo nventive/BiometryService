@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">iPhoneSimulator</Platform>
-    <ProjectGuid>2b4dc5a4-bfd3-4c27-9bf9-51c2015926e4</ProjectGuid>
+    <ProjectGuid>{2B4DC5A4-BFD3-4C27-9BF9-51C2015926E4}</ProjectGuid>
     <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Exe</OutputType>
     <RootNamespace>BiometryService.SampleApp.Uno</RootNamespace>
@@ -149,10 +149,12 @@
       <Visible>false</Visible>
     </ImageAsset>
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Media" Visible="false" />
-    <Folder Include="Media\AppIcons" Visible="false" />
-    <Folder Include="Media\LaunchImages" Visible="false" />
+    <ProjectReference Include="..\..\BiometryService\BiometryService.csproj">
+      <Project>{38d70859-8ca3-4e16-b696-c5fb404b3d82}</Project>
+      <Name>BiometryService</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="..\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems" Label="Shared" Condition="Exists('..\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems')" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
