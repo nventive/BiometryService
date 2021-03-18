@@ -5,6 +5,10 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
+#if __IOS__
+using UIKit;
+using LocalAuthentication;
+#endif
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
@@ -32,12 +36,18 @@ namespace BiometryService.SampleApp.Uno
 
 			var options = new BiometryOptions();
 			options.LocalizedReasonBodyText = "REASON THAT APP WANTS TO USE BIOMETRY :)";
-			options.LocalizedFallbackButtonText = "FALLBACK :(";
-			options.LocalizedCancelButtonText = "CANCEL :'(";
+			options.LocalizedFallbackButtonText = "FALLBACK";
+			options.LocalizedCancelButtonText = "CANCEL";
 
 			// use LAPolicy.DeviceOwnerAuthenticationWithBiometrics for biometrics only with no fallback to passcode/password
 			// use LAPolicy.DeviceOwnerAuthentication for biometrics+watch with fallback to passcode/password
-			//_biometryService = new BiometryService.BiometryService(options, LAPolicy.DeviceOwnerAuthentication);
+#if __IOS__
+             _biometryService = new BiometryService(options, LAPolicy.DeviceOwnerAuthentication);
+#endif
+#if __ANDROID__
+#endif
+#if __UWP__
+#endif
 		}
 
 		private async Task Authenticate(CancellationToken ct)
@@ -47,7 +57,7 @@ namespace BiometryService.SampleApp.Uno
 			{
 				//if (!capabilities.PasscodeIsSet)
 				//{
-				//	View.BackgroundColor = UIColor.Black;
+				//	MainGrid. = UIColor.Black;
 				//}
 				//else if (!capabilities.IsSupported)
 				//{
@@ -58,22 +68,22 @@ namespace BiometryService.SampleApp.Uno
 				//	View.BackgroundColor = UIColor.SystemGray2Color;
 				//}
 
-				return;
+				//return;
 			}
 
-			var result = await _biometryService.Authenticate(ct);
-			switch (result)
-			{
-				//case BiometryAuthenticationResult.Granted:
-				//	View.BackgroundColor = UIColor.SystemGreenColor;
-				//	break;
-				//case BiometryAuthenticationResult.Denied:
-				//	View.BackgroundColor = UIColor.SystemRedColor;
-				//	break;
-				//case BiometryAuthenticationResult.Cancelled:
-				//	View.BackgroundColor = UIColor.SystemYellowColor;
-				//	break;
-			}
+			var result = await _biometryService.ValidateIdentity(ct);
+			//switch (result)
+			//{
+			//	//case BiometryAuthenticationResult.Granted:
+			//	//	View.BackgroundColor = UIColor.SystemGreenColor;
+			//	//	break;
+			//	//case BiometryAuthenticationResult.Denied:
+			//	//	View.BackgroundColor = UIColor.SystemRedColor;
+			//	//	break;
+			//	//case BiometryAuthenticationResult.Cancelled:
+			//	//	View.BackgroundColor = UIColor.SystemYellowColor;
+			//	//	break;
+			//}
 		}
 
 	}

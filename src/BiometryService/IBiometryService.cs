@@ -27,7 +27,7 @@ namespace BiometryService
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
 		/// <returns>A <see cref="BiometryAuthenticationResult" /> enum value.</returns>
-		Task<BiometryAuthenticationResult> Authenticate(CancellationToken ct);
+		Task<BiometryResult> ValidateIdentity(CancellationToken ct);
 
 		/// <summary>
 		/// TODO.
@@ -37,7 +37,7 @@ namespace BiometryService
 		/// <param name="value"></param>
 		/// <typeparam name="T"></typeparam>
 		/// <returns></returns>
-		Task<BiometryAuthenticationResult> Encrypt<T>(CancellationToken ct, string key, string value);
+		Task Encrypt(CancellationToken ct, string key, string value);
 
 		/// <summary>
 		/// TODO.
@@ -45,6 +45,6 @@ namespace BiometryService
 		/// <param name="ct"></param>
 		/// <param name="key"></param>
 		/// <returns></returns>
-		Task<BiometryAuthenticationResult> Decrypt(CancellationToken ct, string key, out string value);
+		Task<string> Decrypt(CancellationToken ct, string key);
 	}
 }

@@ -70,7 +70,7 @@ namespace BiometryService
 		}
 
 		/// <inheritdoc />
-		public async Task<BiometryAuthenticationResult> Authenticate(CancellationToken ct)
+		public async Task<BiometryResult> ValidateIdentity(CancellationToken ct)
 		{
 			var context = new LAContext();
 			context.LocalizedReason = _options.LocalizedReasonBodyText;
@@ -109,17 +109,17 @@ namespace BiometryService
 			var (_, laError) = await context.EvaluatePolicyAsync(_localAuthenticationPolicy, context.LocalizedReason);
 			var evaluatePolicyResult = GetAuthenticationResultFrom(laError);
 
-			return evaluatePolicyResult;
+			return new BiometryResult();
 		}
 
 		/// <inheritdoc />
-		public Task<BiometryAuthenticationResult> Encrypt<T>(CancellationToken ct, string key, string value)
+		public Task Encrypt(CancellationToken ct, string key, string value)
 		{
 			throw new NotImplementedException();
 		}
 
 		/// <inheritdoc />
-		public Task<BiometryAuthenticationResult> Decrypt(CancellationToken ct, string key, out string value)
+		public Task<string> Decrypt(CancellationToken ct, string key)
 		{
 			throw new NotImplementedException();
 		}
