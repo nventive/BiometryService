@@ -15,8 +15,8 @@ namespace BiometryService
 		///     <para>
 		///         The result of calling <see cref="GetCapabilities" /> may change when application enters or exits foreground.
 		///         This is because the user may change device settings related to biometrics including enrollment and application
-		///         permissions. You should call <see cref="GetCapabilities" /> before calling <see cref="Authenticate" />,
-		///         <see cref="Encrypt{T}" />, or <see cref="Decrypt" />.
+		///         permissions. You should call <see cref="GetCapabilities" /> before calling <see cref="ValidateIdentity" />,
+		///         <see cref="Encrypt" />, or <see cref="Decrypt" />.
 		///     </para>
 		/// </remarks>
 		/// <returns>A <see cref="BiometryCapabilities" /> struct instance.</returns>
@@ -33,18 +33,18 @@ namespace BiometryService
 		/// TODO.
 		/// </summary>
 		/// <param name="ct"></param>
-		/// <param name="key"></param>
+		/// <param name="keyName"></param>
 		/// <param name="value"></param>
-		/// <typeparam name="T"></typeparam>
 		/// <returns></returns>
-		Task Encrypt(CancellationToken ct, string key, string value);
+		Task<byte[]> Encrypt(CancellationToken ct, string keyName, string value);
 
 		/// <summary>
 		/// TODO.
 		/// </summary>
 		/// <param name="ct"></param>
-		/// <param name="key"></param>
+		/// <param name="keyName"></param>
+		/// <param name="data"></param>
 		/// <returns></returns>
-		Task<string> Decrypt(CancellationToken ct, string key);
+		Task<string> Decrypt(CancellationToken ct, string keyName, byte[] data);
 	}
 }

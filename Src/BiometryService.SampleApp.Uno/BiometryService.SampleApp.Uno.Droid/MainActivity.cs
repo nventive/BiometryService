@@ -13,6 +13,13 @@ namespace BiometryService.SampleApp.Uno.Droid
 		)]
 	public class MainActivity : Windows.UI.Xaml.ApplicationActivity
 	{
+		public static MainActivity Instance { get; private set; }
+		protected override void OnCreate(Bundle savedInstanceState)
+		{
+			base.OnCreate(savedInstanceState);
+
+			Instance = this;
+		}
 	}
 }
 

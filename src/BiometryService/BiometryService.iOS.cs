@@ -1,9 +1,17 @@
 #if __IOS__
 using System;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Foundation;
 using LocalAuthentication;
+using Microsoft.Extensions.Logging;
+using Security;
+using Uno;
+using Uno.Extensions;
+using Uno.Logging;
 
 namespace BiometryService
 {
@@ -12,17 +20,23 @@ namespace BiometryService
 	/// </summary>
 	public class BiometryService : IBiometryService
 	{
+		private FuncAsync<string> _description;
 		private readonly LAPolicy _localAuthenticationPolicy;
 		private readonly BiometryOptions _options;
+		private readonly bool _fallbackOnPasscodeAuthentication;
+
 
 		/// <summary>
 		///     Initializes a new instance of the <see cref="BiometryService" /> class.
 		/// </summary>
 		/// <param name="options">The <see cref="BiometryOptions" /> instance to use.</param>
+		/// <param name="description"></param>
 		/// <param name="localAuthenticationPolicy">The <see cref="LAPolicy" /> to use.</param>
-		public BiometryService(BiometryOptions options, LAPolicy localAuthenticationPolicy = LAPolicy.DeviceOwnerAuthentication)
+		public BiometryService(BiometryOptions options, FuncAsync<string> description, LAPolicy localAuthenticationPolicy = LAPolicy.DeviceOwnerAuthentication)
 		{
 			_options = options ?? new BiometryOptions();
+
+			_description = description;
 
 			_localAuthenticationPolicy = localAuthenticationPolicy;
 		}
@@ -113,15 +127,72 @@ namespace BiometryService
 		}
 
 		/// <inheritdoc />
-		public Task Encrypt(CancellationToken ct, string key, string value)
+		public async Task<byte[]> Encrypt(CancellationToken ct, string keyName, string value)
 		{
-			throw new NotImplementedException();
+			if (this.Log().IsEnabled(LogLevel.Debug))
+			{
+				this.Log().Debug($"Encrypting the fingerprint for the key '{keyName}'.");
+			}
+
+			try
+			{
+				var key = BiometryHelper.GenerateKey();
+
+				var result = await BiometryHelper.EncryptData(Encoding.ASCII.GetBytes(value), key);
+
+				SaveKey(keyName, key);
+
+				if (this.Log().IsEnabled(LogLevel.Information))
+				{
+					this.Log().Info($"The fingerprint is successfully encrypted for the key '{keyName}'.");
+				}
+
+				return result;
+			}
+			catch (SecurityException ex)
+			{
+				throw new OperationCanceledException("Encryption was cancelled.", ex);
+			}
 		}
 
 		/// <inheritdoc />
-		public Task<string> Decrypt(CancellationToken ct, string key)
+		public async Task<string> Decrypt(CancellationToken ct, string keyName, byte[] data)
 		{
-			throw new NotImplementedException();
+
+			if (this.Log().IsEnabled(LogLevel.Debug))
+			{
+				this.Log().Debug($"Decrypting the fingerprint for the key '{keyName}'.");
+			}
+
+			try
+			{
+				var key = RetrieveKey(keyName, await _description(ct));
+
+				if (key != null)
+				{
+					var result = Encoding.ASCII.GetString(await BiometryHelper.DecryptData(data, key));
+
+					if (this.Log().IsEnabled(LogLevel.Information))
+					{
+						this.Log().Info($"Successfully decrypted the fingerprint for the key '{keyName}'.");
+					}
+
+					return result;
+				}
+				else
+				{
+					if (this.Log().IsEnabled(LogLevel.Information))
+					{
+						this.Log().Info($"Return null as the key is null.");
+					}
+
+					return null;
+				}
+			}
+			catch (SecurityException ex)
+			{
+				throw new OperationCanceledException("Decryption was cancelled.", ex);
+			}
 		}
 
 		private static BiometryAuthenticationResult GetAuthenticationResultFrom(NSError laError)
@@ -202,6 +273,87 @@ namespace BiometryService
 				default:
 					// unknown case, just return none to prevent breaking the future
 					return BiometryType.None;
+			}
+		}
+
+		private void SaveKey(string keyName, byte[] keyData)
+		{
+			if (this.Log().IsEnabled(LogLevel.Debug))
+			{
+				this.Log().Debug($"Saving the key (key name: '{keyName}').");
+			}
+
+			var record = new SecRecord(SecKind.GenericPassword)
+			{
+				Service = keyName.ToLowerInvariant(),
+			};
+
+			var status = SecKeyChain.Remove(record);
+
+			if (status == SecStatusCode.Success || status == SecStatusCode.ItemNotFound)
+			{
+				record.AccessControl = new SecAccessControl(
+					SecAccessible.WhenPasscodeSetThisDeviceOnly,
+					_fallbackOnPasscodeAuthentication ? SecAccessControlCreateFlags.UserPresence : SecAccessControlCreateFlags.TouchIDCurrentSet
+				);
+
+				record.Generic = NSData.FromArray(keyData);
+
+				var result = SecKeyChain.Add(record);
+
+				if (result != SecStatusCode.Success)
+				{
+					throw new SecurityException(result);
+				}
+
+				if (this.Log().IsEnabled(LogLevel.Information))
+				{
+					this.Log().Info($"Successfully saved the key (key name: '{keyName}').");
+				}
+			}
+			else
+			{
+				throw new SecurityException(status);
+			}
+		}
+
+		private byte[] RetrieveKey(string keyName, string prompt)
+		{
+			if (this.Log().IsEnabled(LogLevel.Debug))
+			{
+				this.Log().Debug($"Retrieving the key pair (key name: '{keyName}', prompt: '{prompt}').");
+			}
+
+			var record = new SecRecord(SecKind.GenericPassword)
+			{
+				Service = keyName.ToLowerInvariant(),
+				UseOperationPrompt = prompt
+			};
+
+			var key = SecKeyChain.QueryAsRecord(record, out var result);
+
+			switch (result)
+			{
+				case SecStatusCode.Success:
+
+					if (this.Log().IsEnabled(LogLevel.Information))
+					{
+						this.Log().Info($"Successfully retrieved the key pair (key name: '{keyName}', prompt: '{prompt}').");
+					}
+
+					return key.Generic.ToArray();
+				case SecStatusCode.AuthFailed:
+
+					if (this.Log().IsEnabled(LogLevel.Information))
+					{
+						this.Log().Info($"Could not retrieve the key due to a failed authentication (key name: '{keyName}', prompt: '{prompt}').");
+					}
+
+					return default(byte[]);
+				case SecStatusCode.ItemNotFound:
+					throw new ArgumentException("Key not found.");
+				default:
+					throw new SecurityException(result);
 			}
 		}
 	}

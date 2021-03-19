@@ -1,23 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Core;
 #if __IOS__
 using UIKit;
 using LocalAuthentication;
 #endif
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
+#if __ANDROID__
+using System.Reactive.Concurrency;
+using BiometryService.SampleApp.Uno.Droid;
+using AndroidX.Biometric;
+#endif
+
+
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -42,9 +38,17 @@ namespace BiometryService.SampleApp.Uno
 			// use LAPolicy.DeviceOwnerAuthenticationWithBiometrics for biometrics only with no fallback to passcode/password
 			// use LAPolicy.DeviceOwnerAuthentication for biometrics+watch with fallback to passcode/password
 #if __IOS__
-             _biometryService = new BiometryService(options, LAPolicy.DeviceOwnerAuthentication);
+             _biometryService = new BiometryService(options, async ct => "Biometrics_Confirm", LAPolicy.DeviceOwnerAuthentication);
 #endif
 #if __ANDROID__
+			_biometryService = new BiometryService(MainActivity.Instance,
+												   global::Uno.UI.ContextHelper.Current,
+												   CoreDispatcher.Main,
+												   async ct => await Task.FromResult(new BiometricPrompt.PromptInfo.Builder()
+												.SetTitle("Biometrics SignIn")
+												.SetSubtitle("Biometrics Confirm")
+												.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricWeak | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin
+												.Build()));
 #endif
 #if __UWP__
 #endif
@@ -55,20 +59,16 @@ namespace BiometryService.SampleApp.Uno
 			var capabilities = _biometryService.GetCapabilities();
 			if (!capabilities.PasscodeIsSet || !capabilities.IsSupported || !capabilities.IsEnabled)
 			{
-				//if (!capabilities.PasscodeIsSet)
-				//{
-				//	MainGrid. = UIColor.Black;
-				//}
-				//else if (!capabilities.IsSupported)
-				//{
-				//	View.BackgroundColor = UIColor.Brown;
-				//}
-				//else if (!capabilities.IsEnabled)
-				//{
-				//	View.BackgroundColor = UIColor.SystemGray2Color;
-				//}
-
-				//return;
+				if (!capabilities.PasscodeIsSet)
+				{
+				}
+				else if (!capabilities.IsSupported)
+				{
+				}
+				else if (!capabilities.IsEnabled)
+				{
+				}
+				return;
 			}
 
 			var result = await _biometryService.ValidateIdentity(ct);
@@ -84,6 +84,11 @@ namespace BiometryService.SampleApp.Uno
 			//	//	View.BackgroundColor = UIColor.SystemYellowColor;
 			//	//	break;
 			//}
+		}
+
+		private async void SubmitButtonClick(object sender, RoutedEventArgs e)
+		{
+			await Authenticate(CancellationToken.None);
 		}
 
 	}

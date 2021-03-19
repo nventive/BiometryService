@@ -14,12 +14,12 @@ namespace BiometryService
 
 		}
 
-		public Task<string> Decrypt(CancellationToken ct, string key)
+		public Task<string> Decrypt(CancellationToken ct, string key, byte[] data)
 		{
 			throw new NotImplementedException();
 		}
 
-		public Task Encrypt(CancellationToken ct, string key, string value)
+		public Task<byte[]> Encrypt(CancellationToken ct, string key, string value)
 		{
 			throw new NotImplementedException();
 		}
