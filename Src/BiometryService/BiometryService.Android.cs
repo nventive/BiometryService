@@ -1,13 +1,17 @@
 ﻿#if __ANDROID__
 using System;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Android.Content;
+using Android.Security.Keystore;
 using AndroidX.Biometric;
 using AndroidX.Core.Content;
 using AndroidX.Fragment.App;
 using Java.Lang;
 using Java.Security;
+using Javax.Crypto;
+using Javax.Crypto.Spec;
 using Microsoft.Extensions.Logging;
 using Uno;
 using Uno.Extensions;
@@ -66,14 +70,62 @@ namespace BiometryService
 			}
 		}
 
-		public Task<string> Decrypt(CancellationToken ct, string key, byte[] data)
+		public async Task<string> Decrypt(CancellationToken ct, string keyName, byte[] data)
 		{
-			throw new NotImplementedException();
+			if (this.Log().IsEnabled(LogLevel.Debug))
+			{
+				this.Log().Debug($"Decrypting the fingerprint for the key '{keyName}'.");
+			}
+
+			keyName.Validation().NotNullOrEmpty(nameof(keyName));
+			data.Validation().NotNull(nameof(data));
+
+			using (await _asyncLock.LockAsync(ct))
+			{
+				var iv = data.ToRangeArray(0, 16);
+				var buffer = data.ToRangeArray(16, int.MaxValue);
+
+				var crypto = BuildSymmetricCryptoObject(keyName, CIPHER_NAME, CipherMode.DecryptMode, iv);
+				var result = await AuthenticateAndProcess(ct, keyName, crypto) ?? throw new System.OperationCanceledException();
+				var decryptedData = result.CryptoObject.Cipher.DoFinal(buffer);
+
+				if (this.Log().IsEnabled(LogLevel.Information))
+				{
+					this.Log().Info($"Succcessfully decrypted the fingerprint for the key '{keyName}'.");
+				}
+
+				return Encoding.ASCII.GetString(decryptedData);
+			}
 		}
 
-		public Task<byte[]> Encrypt(CancellationToken ct, string key, string value)
+		public async Task<byte[]> Encrypt(CancellationToken ct, string keyName, string value)
 		{
-			throw new NotImplementedException();
+			if (this.Log().IsEnabled(LogLevel.Debug))
+			{
+				this.Log().Debug($"Encrypting the fingerprint for the key '{keyName}'.");
+			}
+
+			keyName.Validation().NotNullOrEmpty(nameof(keyName));
+			value.Validation().NotNull(nameof(value));
+
+			using (await _asyncLock.LockAsync(ct))
+			{
+				var crypto = BuildSymmetricCryptoObject(keyName, CIPHER_NAME, CipherMode.EncryptMode);
+				var result = await AuthenticateAndProcess(ct, keyName, crypto) ?? throw new System.OperationCanceledException();
+				var encryptedData = result.CryptoObject.Cipher.DoFinal(Encoding.ASCII.GetBytes(value));
+				var iv = result.CryptoObject.Cipher.GetIV();
+
+				var bytes = new byte[iv.Length + encryptedData.Length];
+				iv.CopyTo(bytes, 0);
+				encryptedData.CopyTo(bytes, iv.Length);
+
+				if (this.Log().IsEnabled(LogLevel.Information))
+				{
+					this.Log().Info($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
+				}
+
+				return bytes;
+			}
 		}
 
 		public BiometryCapabilities GetCapabilities()
@@ -98,6 +150,55 @@ namespace BiometryService
 			return new BiometryCapabilities(BiometryType.Fingerprint, IsEnabled, devicePinAvailable);
 
 		}
+
+		private BiometricPrompt.CryptoObject BuildSymmetricCryptoObject(string keyName, string cipherName, CipherMode mode, byte[] iv = null)
+		{
+			if (this.Log().IsEnabled(LogLevel.Debug))
+			{
+				this.Log().Debug($"Building a symmetric crypto object (key name: '{keyName}', mode: '{mode}').");
+			}
+
+			var cipher = Cipher.GetInstance(cipherName);
+
+			if (_keyStore.IsKeyEntry(keyName))
+			{
+				if (mode == CipherMode.EncryptMode)
+				{
+					_keyStore.DeleteEntry(keyName);
+				}
+				else if (mode == CipherMode.DecryptMode)
+				{
+					try
+					{
+						cipher.Init(mode, _keyStore.GetKey(keyName, null), new IvParameterSpec(iv));
+
+						return new BiometricPrompt.CryptoObject(cipher);
+					}
+					catch (KeyPermanentlyInvalidatedException)
+					{
+						_keyStore.DeleteEntry(keyName);
+
+						throw;
+					}
+				}
+			}
+			else if (mode == CipherMode.DecryptMode)
+			{
+				throw new ArgumentException("Key not found.");
+			}
+
+			GenerateSymmetricKey(keyName);
+
+			cipher.Init(mode, _keyStore.GetKey(keyName, null));
+
+			if (this.Log().IsEnabled(LogLevel.Information))
+			{
+				this.Log().Info($"Return the symmetric crypto object (key name: '{keyName}', mode: '{mode}').");
+			}
+
+			return new BiometricPrompt.CryptoObject(cipher);
+		}
+
 
 		private async Task<BiometricPrompt.AuthenticationResult> AuthenticateAndProcess(CancellationToken ct, string keyName, BiometricPrompt.CryptoObject crypto = null)
 		{
@@ -205,6 +306,30 @@ namespace BiometryService
 				default:
 					_authenticationCompletionSource.TrySetException(new AuthenticationError(code, message));
 					return;
+			}
+		}
+
+		private void GenerateSymmetricKey(string keyName)
+		{
+			if (this.Log().IsEnabled(LogLevel.Debug))
+			{
+				this.Log().Debug($"Generating a symmetric pair (key name: '{keyName}').");
+			}
+
+			var keygen = KeyGenerator.GetInstance(KeyProperties.KeyAlgorithmAes, ANDROID_KEYSTORE);
+
+			keygen.Init(new KeyGenParameterSpec.Builder(keyName, KeyStorePurpose.Encrypt | KeyStorePurpose.Decrypt)
+				.SetBlockModes(KeyProperties.BlockModeCbc)
+				.SetEncryptionPaddings(KeyProperties.EncryptionPaddingPkcs7)
+				.SetUserAuthenticationRequired(true)
+				.Build()
+			);
+
+			keygen.GenerateKey();
+
+			if (this.Log().IsEnabled(LogLevel.Information))
+			{
+				this.Log().Info($"Successfully generated a symmetric pair (key name: '{keyName}').");
 			}
 		}
 	}
