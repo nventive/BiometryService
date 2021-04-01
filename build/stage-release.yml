@@ -7,7 +7,7 @@
     downloadType: single
     artifactName: $(ArtifactName)
 
-- task: NuGetToolInstaller@0
+- task: NuGetToolInstaller@1
   displayName: 'Install NuGet $(NUGET_VERSION)'
   inputs:
     versionSpec: $(NUGET_VERSION)

@@ -10,9 +10,9 @@ resources:
 
 variables:
 - name: NUGET_VERSION
-  value: 5.4.0
+  value: 5.8.1
 - name: VSTEST_PLATFORM_VERSION
-  value: 15.9.2
+  value: 16.8.6
 - name: ArtifactName
   value: Packages
 - name: SolutionFileName # Example: MyApplication.sln
