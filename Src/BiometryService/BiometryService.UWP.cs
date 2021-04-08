@@ -145,7 +145,6 @@ namespace BiometryService
 
 		public BiometryCapabilities GetCapabilities()
 		{
-			throw new NotImplementedException();
 			return new BiometryCapabilities(BiometryType.Fingerprint, true, true);
 		}
 
