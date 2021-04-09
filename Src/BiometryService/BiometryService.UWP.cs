@@ -18,6 +18,9 @@ using AsyncLock = Uno.Threading.AsyncLock;
 
 namespace BiometryService
 {
+	/// <summary>
+	///     Implementation of the <see cref="IBiometryService" /> for UWP.
+	/// </summary>
 	public class BiometryService : IBiometryService
 	{
 		private AsyncLock _asyncLock;
@@ -27,6 +30,12 @@ namespace BiometryService
 
 		private IPropertySet _keys;
 
+		/// <summary>
+		///     Initializes a new instance of the <see cref="BiometryService" /> class.
+		/// </summary>
+		/// <param name="supported"></param>
+		/// <param name="enrolled"></param>
+		/// <param name="backgroundScheduler">The <see cref="IScheduler" /> to use.</param>
 		public BiometryService(bool supported, bool enrolled, IScheduler backgroundScheduler)
 		{
 			backgroundScheduler.Validation().NotNull(nameof(backgroundScheduler));
@@ -48,6 +57,13 @@ namespace BiometryService
 					.RefCount();
 		}
 
+		/// <summary>
+		///     Decodes the array of byte data to a string value
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <param name="key"></param>
+		/// <param name="data"></param>
+		/// <returns>A string</returns>
 		public async Task<string> Decrypt(CancellationToken ct, string key, byte[] data)
 		{
 			if (this.Log().IsEnabled(LogLevel.Debug))
@@ -95,6 +111,13 @@ namespace BiometryService
 			}
 		}
 
+		/// <summary>
+		///     Encrypt the string value to an array of byte data
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <param name="key"></param>
+		/// <param name="value"></param>
+		/// <returns>An array of byte</returns>
 		public async Task<byte[]> Encrypt(CancellationToken ct, string key, string value)
 		{
 			if (this.Log().IsEnabled(LogLevel.Debug))
@@ -143,11 +166,20 @@ namespace BiometryService
 			}
 		}
 
+		/// <summary>
+		///     Gets the device's current biometric capabilities.
+		/// </summary>
+		/// <returns>A <see cref="BiometryCapabilities" /> struct instance.</returns>
 		public BiometryCapabilities GetCapabilities()
 		{
 			return new BiometryCapabilities(BiometryType.Fingerprint, true, true);
 		}
 
+		/// <summary>
+		///     Authenticate the user using biometrics.
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <returns>A <see cref="BiometryResult" /> enum value.</returns>
 		public async Task<BiometryResult> ValidateIdentity(CancellationToken ct)
 		{
 			if (this.Log().IsEnabled(LogLevel.Debug))
@@ -189,8 +221,16 @@ namespace BiometryService
 			}
 		}
 
+		/// <summary>
+		///     Is biometry enabled observable
+		/// </summary>
+		/// <returns>A <see cref="bool" /> value.</returns>
 		public IObservable<bool> GetAndObserveIsEnabled() => _isEnabled;
 
+		/// <summary>
+		///     Is biometry supported observable
+		/// </summary>
+		/// <returns>A <see cref="bool" /> value.</returns>
 		public IObservable<bool> GetAndObserveIsSupported() => _isSupported;
 
 		private byte[] RetrieveKey(string name)

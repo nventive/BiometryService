@@ -21,6 +21,9 @@ using Windows.UI.Core;
 
 namespace BiometryService
 {
+	/// <summary>
+	///     Implementation of the <see cref="IBiometryService" /> for Android.
+	/// </summary>
 	public class BiometryService : IBiometryService
 	{
 		private const string ANDROID_KEYSTORE = "AndroidKeyStore";
@@ -38,6 +41,13 @@ namespace BiometryService
 		private readonly AsyncLock _asyncLock = new AsyncLock();
 		private TaskCompletionSource<BiometricPrompt.AuthenticationResult> _authenticationCompletionSource;
 
+		/// <summary>
+		///     Initializes a new instance of the <see cref="BiometryService" /> class.
+		/// </summary>
+		/// <param name="fragmentActivity"></param>
+		/// <param name="applicationContext"></param>
+		/// <param name="dispatcher"></param>
+		/// <param name="promptInfoBuilder"></param>
 		public BiometryService(
 			FragmentActivity fragmentActivity,
 			Context applicationContext,
@@ -59,6 +69,11 @@ namespace BiometryService
 			_keyStore.Load(null);
 		}
 
+		/// <summary>
+		///     Authenticate the user using biometrics.
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <returns>A <see cref="BiometryResult" /> enum value.</returns>
 		public async Task<BiometryResult> ValidateIdentity(CancellationToken ct)
 		{
 			using (await _asyncLock.LockAsync(ct))
@@ -70,6 +85,13 @@ namespace BiometryService
 			}
 		}
 
+		/// <summary>
+		///     Decodes the array of byte data to a string value
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <param name="keyName"></param>
+		/// <param name="data"></param>
+		/// <returns>A string</returns>
 		public async Task<string> Decrypt(CancellationToken ct, string keyName, byte[] data)
 		{
 			if (this.Log().IsEnabled(LogLevel.Debug))
@@ -98,6 +120,13 @@ namespace BiometryService
 			}
 		}
 
+		/// <summary>
+		///     Encrypt the string value to an array of byte data
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <param name="keyName"></param>
+		/// <param name="value"></param>
+		/// <returns>An array of byte</returns>
 		public async Task<byte[]> Encrypt(CancellationToken ct, string keyName, string value)
 		{
 			if (this.Log().IsEnabled(LogLevel.Debug))
@@ -128,6 +157,10 @@ namespace BiometryService
 			}
 		}
 
+		/// <summary>
+		///     Gets the device's current biometric capabilities.
+		/// </summary>
+		/// <returns>A <see cref="BiometryCapabilities" /> struct instance.</returns>
 		public BiometryCapabilities GetCapabilities()
 		{
 			bool IsEnabled = false;
