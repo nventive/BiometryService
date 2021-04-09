@@ -39,8 +39,7 @@ namespace BiometryService.SampleApp.Uno
 			// use LAPolicy.DeviceOwnerAuthentication for biometrics+watch with fallback to passcode/password
 #if __IOS__
              _biometryService = new BiometryService(options, async ct => "Biometrics_Confirm", LAPolicy.DeviceOwnerAuthentication);
-#endif
-#if __ANDROID__
+#elif __ANDROID__
 			_biometryService = new BiometryService(MainActivity.Instance,
 												   global::Uno.UI.ContextHelper.Current,
 												   CoreDispatcher.Main,
@@ -49,8 +48,9 @@ namespace BiometryService.SampleApp.Uno
 												.SetSubtitle("Biometrics Confirm")
 												.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricWeak | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin
 												.Build()));
-#endif
-#if __UWP__
+#else
+			_biometryService = new BiometryService(true, true, null);
+
 #endif
 		}
 
