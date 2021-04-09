@@ -240,7 +240,8 @@ namespace BiometryService
 				this.Log().Debug($"Authenticating and processing the fingerprint (key name: '{keyName}').");
 			}
 
-			var result = _biometricManager.CanAuthenticate();
+			//TODO parameterize BiometricManager.Authenticators for CanAuthenticate
+			var result = _biometricManager.CanAuthenticate(BiometricManager.Authenticators.BiometricWeak);
 			if (result == BiometricManager.BiometricSuccess)
 			{
 				_authenticationCompletionSource = new TaskCompletionSource<BiometricPrompt.AuthenticationResult>();
