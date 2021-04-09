@@ -26,25 +26,25 @@ namespace BiometryService
 		///     Authenticate the user using biometrics.
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <returns>A <see cref="BiometryAuthenticationResult" /> enum value.</returns>
+		/// <returns>A <see cref="BiometryResult" /> enum value.</returns>
 		Task<BiometryResult> ValidateIdentity(CancellationToken ct);
 
 		/// <summary>
-		/// TODO.
+		/// Encrypt the string value to an array of byte data
 		/// </summary>
-		/// <param name="ct"></param>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
 		/// <param name="keyName"></param>
 		/// <param name="value"></param>
-		/// <returns></returns>
+		/// <returns>An array of byte</returns>
 		Task<byte[]> Encrypt(CancellationToken ct, string keyName, string value);
 
 		/// <summary>
-		/// TODO.
+		/// Decodes the array of byte data to a string value
 		/// </summary>
-		/// <param name="ct"></param>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
 		/// <param name="keyName"></param>
 		/// <param name="data"></param>
-		/// <returns></returns>
+		/// <returns>A string</returns>
 		Task<string> Decrypt(CancellationToken ct, string keyName, byte[] data);
 	}
 }

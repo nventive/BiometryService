@@ -41,7 +41,10 @@ namespace BiometryService
 			_localAuthenticationPolicy = localAuthenticationPolicy;
 		}
 
-		/// <inheritdoc />
+		/// <summary>
+		///     Gets the device's current biometric capabilities.
+		/// </summary>
+		/// <returns>A <see cref="BiometryCapabilities" /> struct instance.</returns>
 		public BiometryCapabilities GetCapabilities()
 		{
 			var context = new LAContext();
@@ -83,7 +86,11 @@ namespace BiometryService
 			return capabilities;
 		}
 
-		/// <inheritdoc />
+		/// <summary>
+		///     Authenticate the user using biometrics.
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <returns>A <see cref="BiometryResult" /> enum value.</returns>
 		public async Task<BiometryResult> ValidateIdentity(CancellationToken ct)
 		{
 			var context = new LAContext();
@@ -126,7 +133,13 @@ namespace BiometryService
 			return new BiometryResult();
 		}
 
-		/// <inheritdoc />
+		/// <summary>
+		///     Encrypt the string value to an array of byte data
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <param name="keyName"></param>
+		/// <param name="value"></param>
+		/// <returns>An array of byte</returns>
 		public async Task<byte[]> Encrypt(CancellationToken ct, string keyName, string value)
 		{
 			if (this.Log().IsEnabled(LogLevel.Debug))
@@ -155,7 +168,13 @@ namespace BiometryService
 			}
 		}
 
-		/// <inheritdoc />
+		/// <summary>
+		///     Decodes the array of byte data to a string value
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <param name="keyName"></param>
+		/// <param name="data"></param>
+		/// <returns>A string</returns>
 		public async Task<string> Decrypt(CancellationToken ct, string keyName, byte[] data)
 		{
 
