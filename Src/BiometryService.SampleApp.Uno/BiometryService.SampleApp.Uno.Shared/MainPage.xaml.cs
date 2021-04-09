@@ -12,8 +12,9 @@ using System.Reactive.Concurrency;
 using BiometryService.SampleApp.Uno.Droid;
 using AndroidX.Biometric;
 #endif
-
-
+#if WINDOWS_UWP
+using System.Reactive.Concurrency;
+#endif
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -39,7 +40,8 @@ namespace BiometryService.SampleApp.Uno
 			// use LAPolicy.DeviceOwnerAuthentication for biometrics+watch with fallback to passcode/password
 #if __IOS__
              _biometryService = new BiometryService(options, async ct => "Biometrics_Confirm", LAPolicy.DeviceOwnerAuthentication);
-#elif __ANDROID__
+#endif
+#if __ANDROID__
 			_biometryService = new BiometryService(MainActivity.Instance,
 												   global::Uno.UI.ContextHelper.Current,
 												   CoreDispatcher.Main,
@@ -48,9 +50,9 @@ namespace BiometryService.SampleApp.Uno
 												.SetSubtitle("Biometrics Confirm")
 												.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricWeak | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin
 												.Build()));
-#else
-			_biometryService = new BiometryService(true, true, null);
-
+#endif
+#if WINDOWS_UWP
+			_biometryService = new BiometryService(true, true, TaskPoolScheduler.Default.ToBackgroundScheduler());
 #endif
 		}
 
@@ -86,9 +88,30 @@ namespace BiometryService.SampleApp.Uno
 			//}
 		}
 
-		private async void SubmitButtonClick(object sender, RoutedEventArgs e)
+		private async Task Encrypt(CancellationToken ct)
+		{
+			var encrypt = _biometryService.Encrypt(ct, "Secret", "This is my secret to Encrypt");
+		}
+
+		private async Task Decrypt(CancellationToken ct)
+		{
+			byte[] array_name = new byte[new byte()];
+			var decrypt = _biometryService.Decrypt(ct, "Secret", array_name);			
+		}
+
+		private async void AuthenticateButtonClick(object sender, RoutedEventArgs e)
 		{
 			await Authenticate(CancellationToken.None);
+		}
+
+		private async void EncryptButtonClick(object sender, RoutedEventArgs e)
+		{
+			await Encrypt(CancellationToken.None);
+		}
+
+		private async void DecryptButtonClick(object sender, RoutedEventArgs e)
+		{
+			await Decrypt(CancellationToken.None);
 		}
 
 	}

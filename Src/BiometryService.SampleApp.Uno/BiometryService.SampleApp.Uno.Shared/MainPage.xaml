@@ -11,10 +11,28 @@
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
 		</Grid.RowDefinitions>
 		
 		<CommandBar Content="Biometric Authentication" />
 
-		<Button Grid.Row="1" x:Name="Btn_Authenticate" Click="SubmitButtonClick" Foreground="black" Content="Authenticate"/>
+        <Button Grid.Row="1"
+                x:Name="Btn_Authenticate"
+                Click="AuthenticateButtonClick"
+                Foreground="black"
+                Content="Authenticate"/>
+        
+        <Button Grid.Row="2"
+                x:Name="Btn_Encrypt"
+                Click="EncryptButtonClick" 
+                Foreground="black" 
+                Content="Encrypt"/>
+        
+        <Button Grid.Row="3" 
+                x:Name="Btn_Decrypt" 
+                Click="DecryptButtonClick" 
+                Foreground="black" 
+                Content="Decrypt"/>
 	</Grid>
 </Page>
