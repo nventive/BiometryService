@@ -163,24 +163,27 @@ namespace BiometryService
 		/// <returns>A <see cref="BiometryCapabilities" /> struct instance.</returns>
 		public BiometryCapabilities GetCapabilities()
 		{
-			bool IsEnabled = false;
+			bool _isEnabled = false;
 			switch (_biometricManager.CanAuthenticate(BiometricManager.Authenticators.BiometricStrong))
 			{
 				case BiometricManager.BiometricSuccess:
-					IsEnabled = true;
+					_isEnabled = true;
 					break;
 				case BiometricManager.BiometricErrorNoHardware:
+					_isEnabled = false;
 					break;
 				case BiometricManager.BiometricErrorNoneEnrolled:
+					_isEnabled = false;
 					break;
 				case BiometricManager.BiometricErrorSecurityUpdateRequired:
+					_isEnabled = false;
 					break;
 				default:
 					break;
 			}
 			bool devicePinAvailable = Convert.ToBoolean(_biometricManager.CanAuthenticate(BiometricManager.Authenticators.DeviceCredential));
 
-			return new BiometryCapabilities(BiometryType.Fingerprint, IsEnabled, devicePinAvailable);
+			return new BiometryCapabilities(BiometryType.FaceOrFingerprint, _isEnabled, devicePinAvailable);
 
 		}
 

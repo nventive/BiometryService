@@ -16,6 +16,10 @@ namespace BiometryService
 		/// <summary>
 		///		Face identifier.
 		/// </summary>
-		Face
+		Face,
+		/// <summary>
+		///		Managed by the OS
+		/// </summary>
+		FaceOrFingerprint
 	}
 }
