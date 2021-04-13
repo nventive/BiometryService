@@ -6,7 +6,7 @@
 	  e.g. macOS: The specified language targets for uap10.0.17763 is missing. Ensure correct tooling is installed for 'uap'.
 	  -->
     <TargetFrameworks Condition=" '$([MSBuild]::IsOsPlatform(OSX))' ">netstandard2.0;xamarinios10;</TargetFrameworks>
-    <TargetFrameworks Condition=" '!$([MSBuild]::IsOsPlatform(OSX))' ">netstandard2.0;xamarinios10;monoandroid10.0;uap10.0.17763</TargetFrameworks>
+    <TargetFrameworks Condition=" '!$([MSBuild]::IsOsPlatform(OSX))' ">netstandard2.0;xamarinios10;monoandroid10.0;uap10.0.18362</TargetFrameworks>
     <Authors>nventive</Authors>
     <Company>nventive</Company>
     <RootNamespace>BiometryService</RootNamespace>
