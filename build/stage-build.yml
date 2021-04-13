@@ -25,7 +25,6 @@
     command: restore
     solution: $(Build.SourcesDirectory)/$(SolutionFileName)
     selectOrConfig: select
-    feedRestore: nventive
     includeNuGetOrg: true
     verbosityRestore: Normal
     noCache: true
