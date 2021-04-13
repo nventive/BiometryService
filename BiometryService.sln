@@ -473,8 +473,6 @@ Global
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|iPhoneSimulator.Deploy.0 = Release|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|NuGet.ActiveCfg = Release|Any CPU
-		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|NuGet.Build.0 = Release|Any CPU
-		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|NuGet.Deploy.0 = Release|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|Simulator.ActiveCfg = Release|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|Simulator.Build.0 = Release|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|Simulator.Deploy.0 = Release|Any CPU
