@@ -45,17 +45,6 @@
     createLogFile: false
     msbuildArguments: /p:PackageVersion=$(GitVersion.SemVer) # Set the version of the packages, will have no effect on application projects (Heads).
 
-- script: dotnet test --no-build --configuration $(ApplicationConfiguration) --logger trx --collect "Code coverage"
-  displayName: 'Run tests'
-  condition: and(succeeded(), eq(variables['ApplicationPlatform'], 'NuGet'))
-
-- task: PublishTestResults@2
-  displayName: 'Publish test results'
-  condition: succeededOrFailed()
-  inputs:
-    testRunner: VSTest
-    testResultsFiles: '**/*.trx'
-
 - task: PublishBuildArtifacts@1
   displayName: 'Publish artifact $(ApplicationConfiguration)'
   inputs:
