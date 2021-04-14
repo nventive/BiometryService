@@ -33,7 +33,7 @@ stages:
           GeneratePackageOnBuild: true
 
     pool:
-      name: Container
+      name: 'windows 1809'
 
     variables:
     - name: PackageOutputPath # Path where nuget packages will be copied to.
