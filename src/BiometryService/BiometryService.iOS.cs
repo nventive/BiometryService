@@ -142,30 +142,43 @@ namespace BiometryService
 		/// <returns>An array of byte</returns>
 		public async Task<byte[]> Encrypt(CancellationToken ct, string keyName, string value)
 		{
-			if (this.Log().IsEnabled(LogLevel.Debug))
+			var capabilities = GetCapabilities();
+			if (capabilities.IsEnabled)
 			{
-				this.Log().Debug($"Encrypting the fingerprint for the key '{keyName}'.");
-			}
-
-			try
-			{
-				var key = BiometryHelper.GenerateKey();
-
-				var result = await BiometryHelper.EncryptData(Encoding.ASCII.GetBytes(value), key);
-
-				SaveKey(keyName, key);
-
-				if (this.Log().IsEnabled(LogLevel.Information))
+				if (this.Log().IsEnabled(LogLevel.Debug))
 				{
-					this.Log().Info($"The fingerprint is successfully encrypted for the key '{keyName}'.");
+					this.Log().Debug($"Encrypting the fingerprint for the key '{keyName}'.");
 				}
 
-				return result;
+				try
+				{
+					var key = BiometryHelper.GenerateKey();
+
+					var result = await BiometryHelper.EncryptData(Encoding.ASCII.GetBytes(value), key);
+
+					SaveKey(keyName, key);
+
+					if (this.Log().IsEnabled(LogLevel.Information))
+					{
+						this.Log().Info($"The fingerprint is successfully encrypted for the key '{keyName}'.");
+					}
+
+					return result;
+				}
+				catch (SecurityException ex)
+				{
+					throw new OperationCanceledException("Encryption was cancelled.", ex);
+				}
 			}
-			catch (SecurityException ex)
-			{
-				throw new OperationCanceledException("Encryption was cancelled.", ex);
-			}
+			else
+            {
+				if (this.Log().IsEnabled(LogLevel.Debug))
+				{
+					this.Log().Debug($"Can not encrypt '{keyName}'.");
+				}
+
+				return null;
+			}						
 		}
 
 		/// <summary>
@@ -177,40 +190,50 @@ namespace BiometryService
 		/// <returns>A string</returns>
 		public async Task<string> Decrypt(CancellationToken ct, string keyName, byte[] data)
 		{
-
-			if (this.Log().IsEnabled(LogLevel.Debug))
+			var capabilities = GetCapabilities();
+			if (capabilities.IsEnabled)
 			{
-				this.Log().Debug($"Decrypting the fingerprint for the key '{keyName}'.");
-			}
-
-			try
-			{
-				var key = RetrieveKey(keyName, await _description(ct));
-
-				if (key != null)
+				if (this.Log().IsEnabled(LogLevel.Debug))
 				{
-					var result = Encoding.ASCII.GetString(await BiometryHelper.DecryptData(data, key));
-
-					if (this.Log().IsEnabled(LogLevel.Information))
-					{
-						this.Log().Info($"Successfully decrypted the fingerprint for the key '{keyName}'.");
-					}
-
-					return result;
+					this.Log().Debug($"Decrypting the fingerprint for the key '{keyName}'.");
 				}
-				else
+
+				try
 				{
-					if (this.Log().IsEnabled(LogLevel.Information))
-					{
-						this.Log().Info($"Return null as the key is null.");
-					}
+					var key = RetrieveKey(keyName, await _description(ct));
 
-					return null;
+					if (key != null)
+					{
+						var result = Encoding.ASCII.GetString(await BiometryHelper.DecryptData(data, key));
+
+						if (this.Log().IsEnabled(LogLevel.Information))
+						{
+							this.Log().Info($"Successfully decrypted the fingerprint for the key '{keyName}'.");
+						}
+
+						return result;
+					}
+					else
+					{
+						if (this.Log().IsEnabled(LogLevel.Information))
+						{
+							this.Log().Info($"Return null as the key is null.");
+						}
+
+						return null;
+					}
 				}
-			}
-			catch (SecurityException ex)
-			{
-				throw new OperationCanceledException("Decryption was cancelled.", ex);
+				catch (SecurityException ex)
+				{
+					throw new OperationCanceledException("Decryption was cancelled.", ex);
+				}				
+			} else
+            {
+				if (this.Log().IsEnabled(LogLevel.Debug))
+				{
+					this.Log().Debug($"Can not decrypt '{keyName}'.");
+				}
+				return null;
 			}
 		}
 
