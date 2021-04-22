@@ -5,34 +5,69 @@
     xmlns:local="using:BiometryService.SampleApp.Uno"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    xmlns:ios="http://uno.ui/ios"
+    mc:Ignorable="d ios">
 
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="*" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
 		</Grid.RowDefinitions>
 		
-		<CommandBar Content="Biometric Authentication" />
+		<CommandBar Content="Biometric Authentication"
+                    ios:Margin="0,20,0,0"/>
 
-        <Button Grid.Row="1"
-                x:Name="Btn_Authenticate"
-                Click="AuthenticateButtonClick"
-                Foreground="black"
-                Content="Authenticate"/>
-        
-        <Button Grid.Row="2"
-                x:Name="Btn_Encrypt"
-                Click="EncryptButtonClick" 
-                Foreground="black" 
-                Content="Encrypt"/>
-        
-        <Button Grid.Row="3" 
-                x:Name="Btn_Decrypt" 
-                Click="DecryptButtonClick" 
-                Foreground="black" 
-                Content="Decrypt"/>
-	</Grid>
+        <StackPanel Grid.Row="1"
+                    Margin="10">            
+
+            <Button x:Name="Btn_Authenticate"
+                    Click="AuthenticateButtonClick"
+                    Foreground="black"
+                    Margin="20,10"
+                    Width="150"
+                    Content="Authenticate"/>
+
+            <StackPanel Background="LightGray"
+                        Margin="20,10">
+                <TextBlock x:Name="TxtAuthenticationStatus"
+                           Text="Authentication Status"
+                           Foreground="Black"
+                           Margin="20,10"/>
+            </StackPanel>
+
+            <TextBox PlaceholderText="Enter Text to Encrypt"
+                     Margin="20,50,20,10"                     
+                     x:Name="TxtToEncrypt"/>
+
+            <Button x:Name="Btn_Encrypt"
+                    Click="EncryptButtonClick" 
+                    Foreground="black" 
+                    Width="150"
+                    Margin="20,10"
+                    Content="Encrypt"/>
+
+            <StackPanel Background="LightGray"
+                        Margin="20,10">
+                <TextBlock x:Name="TxtEncryptionStatus"
+                           Text="Encryption Status"
+                           Foreground="Black"
+                           Margin="20,10"/>
+            </StackPanel>
+
+            <Button x:Name="Btn_Decrypt" 
+                    Click="DecryptButtonClick" 
+                    Foreground="black" 
+                    Margin="20,10"
+                    Width="150"
+                    Content="Decrypt"/>
+
+            <StackPanel Background="LightGray"
+                        Margin="20,10">
+                <TextBlock x:Name="TxtDecrypted"
+                           Foreground="Black"
+                           Margin="20,10"/>
+            </StackPanel>
+
+        </StackPanel>
+    </Grid>
 </Page>
