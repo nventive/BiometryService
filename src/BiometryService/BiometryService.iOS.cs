@@ -30,7 +30,7 @@ namespace BiometryService
 		///     Initializes a new instance of the <see cref="BiometryService" /> class.
 		/// </summary>
 		/// <param name="options">The <see cref="BiometryOptions" /> instance to use.</param>
-		/// <param name="description"></param>
+		/// <param name="description">An enum of LAPolicy.</param>
 		/// <param name="localAuthenticationPolicy">The <see cref="LAPolicy" /> to use.</param>
 		public BiometryService(BiometryOptions options, FuncAsync<string> description, LAPolicy localAuthenticationPolicy = LAPolicy.DeviceOwnerAuthentication)
 		{
@@ -137,8 +137,8 @@ namespace BiometryService
 		///     Encrypt the string value to an array of byte data
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="keyName"></param>
-		/// <param name="value"></param>
+		/// <param name="keyName">The key for the value.</param>
+		/// <param name="value">A string value to encrypt.</param>
 		/// <returns>An array of byte</returns>
 		public async Task<byte[]> Encrypt(CancellationToken ct, string keyName, string value)
 		{
@@ -172,8 +172,8 @@ namespace BiometryService
 		///     Decodes the array of byte data to a string value
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="keyName"></param>
-		/// <param name="data"></param>
+		/// <param name="keyName">The key for the value.</param>
+		/// <param name="data">An Array of byte to decrypt.</param>
 		/// <returns>A string</returns>
 		public async Task<string> Decrypt(CancellationToken ct, string keyName, byte[] data)
 		{

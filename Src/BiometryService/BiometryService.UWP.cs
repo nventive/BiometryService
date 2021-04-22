@@ -33,8 +33,8 @@ namespace BiometryService
 		/// <summary>
 		///     Initializes a new instance of the <see cref="BiometryService" /> class.
 		/// </summary>
-		/// <param name="supported"></param>
-		/// <param name="enrolled"></param>
+		/// <param name="supported">A bool to know if the device is supported.</param>
+		/// <param name="enrolled">A bool to know if the device is enrolled.</param>
 		/// <param name="backgroundScheduler">The <see cref="IScheduler" /> to use.</param>
 		public BiometryService(bool supported, bool enrolled, IScheduler backgroundScheduler)
 		{
@@ -61,8 +61,8 @@ namespace BiometryService
 		///     Decodes the array of byte data to a string value
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="key"></param>
-		/// <param name="data"></param>
+		/// <param name="key">The key for the value.</param>
+		/// <param name="data">An Array of byte to decrypt.</param>
 		/// <returns>A string</returns>
 		public async Task<string> Decrypt(CancellationToken ct, string key, byte[] data)
 		{
@@ -115,8 +115,8 @@ namespace BiometryService
 		///     Encrypt the string value to an array of byte data
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="key"></param>
-		/// <param name="value"></param>
+		/// <param name="key">The key for the value.</param>
+		/// <param name="value">A string value to encrypt.</param>
 		/// <returns>An array of byte</returns>
 		public async Task<byte[]> Encrypt(CancellationToken ct, string key, string value)
 		{
