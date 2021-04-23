@@ -118,7 +118,7 @@ namespace BiometryService
 		/// <param name="key">The key for the value.</param>
 		/// <param name="value">A string value to encrypt.</param>
 		/// <returns>An array of byte</returns>
-		public async Task<byte[]> Encrypt(CancellationToken ct, string key, string value)
+		public async Task Encrypt(CancellationToken ct, string key, string value)
 		{
 			if (this.Log().IsEnabled(LogLevel.Debug))
 			{
@@ -157,10 +157,6 @@ namespace BiometryService
 						{
 							this.Log().Info($"Successfully encrypted the fingerprint (key name: '{key}').");
 						}
-
-						return aes.IV
-							.Concat(ms.ToArray())
-							.ToArray();
 					}
 				}
 			}

@@ -94,17 +94,17 @@ namespace BiometryService
         ///     Decodes the array of byte data to a string value
         /// </summary>
         /// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-        /// <param name="keyName">The key for the value.</param>
+        /// <param name="key">The key for the value.</param>
         /// <param name="data">An Array of byte to decrypt.</param>
         /// <returns>A string</returns>
-        public async Task<string> Decrypt(CancellationToken ct, string keyName, byte[] data)
+        public async Task<string> Decrypt(CancellationToken ct, string key, byte[] data)
         {
             if (this.Log().IsEnabled(LogLevel.Debug))
             {
-                this.Log().Debug($"Decrypting the fingerprint for the key '{keyName}'.");
+                this.Log().Debug($"Decrypting the fingerprint for the key '{key}'.");
             }
 
-            keyName.Validation().NotNullOrEmpty(nameof(keyName));
+            key.Validation().NotNullOrEmpty(nameof(key));
             data.Validation().NotNull(nameof(data));
 
             using (await _asyncLock.LockAsync(ct))
@@ -112,13 +112,13 @@ namespace BiometryService
                 var iv = data.ToRangeArray(0, 16);
                 var buffer = data.ToRangeArray(16, int.MaxValue);
 
-                var crypto = BuildSymmetricCryptoObject(keyName, CIPHER_NAME, CipherMode.DecryptMode, iv);
-                var result = await AuthenticateAndProcess(ct, keyName, crypto) ?? throw new System.OperationCanceledException();
+                var crypto = BuildSymmetricCryptoObject(key, CIPHER_NAME, CipherMode.DecryptMode, iv);
+                var result = await AuthenticateAndProcess(ct, key, crypto) ?? throw new System.OperationCanceledException();
                 var decryptedData = result.CryptoObject.Cipher.DoFinal(buffer);
 
                 if (this.Log().IsEnabled(LogLevel.Information))
                 {
-                    this.Log().Info($"Succcessfully decrypted the fingerprint for the key '{keyName}'.");
+                    this.Log().Info($"Succcessfully decrypted the fingerprint for the key '{key}'.");
                 }
 
                 return Encoding.ASCII.GetString(decryptedData);
@@ -129,23 +129,23 @@ namespace BiometryService
         ///     Encrypt the string value to an array of byte data
         /// </summary>
         /// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-        /// <param name="keyName">The key for the value.</param>
+        /// <param name="key">The key for the value.</param>
         /// <param name="value">A string value to encrypt.</param>
         /// <returns>An array of byte</returns>
-        public async Task<byte[]> Encrypt(CancellationToken ct, string keyName, string value)
+        public async Task Encrypt(CancellationToken ct, string key, string value)
         {
             if (this.Log().IsEnabled(LogLevel.Debug))
             {
-                this.Log().Debug($"Encrypting the fingerprint for the key '{keyName}'.");
+                this.Log().Debug($"Encrypting the fingerprint for the key '{key}'.");
             }
 
-            keyName.Validation().NotNullOrEmpty(nameof(keyName));
+            key.Validation().NotNullOrEmpty(nameof(key));
             value.Validation().NotNull(nameof(value));
 
             using (await _asyncLock.LockAsync(ct))
             {
-                var crypto = BuildSymmetricCryptoObject(keyName, CIPHER_NAME, CipherMode.EncryptMode);
-                var result = await AuthenticateAndProcess(ct, keyName, crypto) ?? throw new System.OperationCanceledException();
+                var crypto = BuildSymmetricCryptoObject(key, CIPHER_NAME, CipherMode.EncryptMode);
+                var result = await AuthenticateAndProcess(ct, key, crypto) ?? throw new System.OperationCanceledException();
                 var encryptedData = result.CryptoObject.Cipher.DoFinal(Encoding.ASCII.GetBytes(value));
                 var iv = result.CryptoObject.Cipher.GetIV();
 
@@ -155,10 +155,8 @@ namespace BiometryService
 
                 if (this.Log().IsEnabled(LogLevel.Information))
                 {
-                    this.Log().Info($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
+                    this.Log().Info($"Succcessfully encrypted the fingerprint for the key'{key}'.");
                 }
-
-                return bytes;
             }
         }
 

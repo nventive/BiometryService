@@ -134,36 +134,32 @@ namespace BiometryService
 		}
 
 		/// <summary>
-		///     Encrypt the string value to an array of byte data
+		///     Encrypt the string value into the keychain
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="keyName">The key for the value.</param>
+		/// <param name="key">The key for the value.</param>
 		/// <param name="value">A string value to encrypt.</param>
 		/// <returns>An array of byte</returns>
-		public async Task<byte[]> Encrypt(CancellationToken ct, string keyName, string value)
+		public async Task Encrypt(CancellationToken ct, string key, string value)
 		{
 			var capabilities = GetCapabilities();
 			if (capabilities.IsEnabled)
 			{
 				if (this.Log().IsEnabled(LogLevel.Debug))
 				{
-					this.Log().Debug($"Encrypting the fingerprint for the key '{keyName}'.");
+					this.Log().Debug($"Encrypting the fingerprint for the key '{key}'.");
 				}
 
 				try
 				{
-					var key = BiometryHelper.GenerateKey();
 
-					var result = await BiometryHelper.EncryptData(Encoding.ASCII.GetBytes(value), key);
-
-					SaveKey(keyName, key);
+					SaveKey(key, value);
 
 					if (this.Log().IsEnabled(LogLevel.Information))
 					{
-						this.Log().Info($"The fingerprint is successfully encrypted for the key '{keyName}'.");
+						this.Log().Info($"The fingerprint is successfully encrypted for the key '{key}'.");
 					}
 
-					return result;
 				}
 				catch (SecurityException ex)
 				{
@@ -174,54 +170,31 @@ namespace BiometryService
             {
 				if (this.Log().IsEnabled(LogLevel.Debug))
 				{
-					this.Log().Debug($"Can not encrypt '{keyName}'.");
+					this.Log().Debug($"Can not encrypt '{key}'.");
 				}
-
-				return null;
 			}						
 		}
 
 		/// <summary>
-		///     Decodes the array of byte data to a string value
+		///     Decodes the array of string data to a string value
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="keyName">The key for the value.</param>
+		/// <param name="key">The key for the value.</param>
 		/// <param name="data">An Array of byte to decrypt.</param>
 		/// <returns>A string</returns>
-		public async Task<string> Decrypt(CancellationToken ct, string keyName, byte[] data)
+		public async Task<string> Decrypt(CancellationToken ct, string key, byte[] data)
 		{
 			var capabilities = GetCapabilities();
 			if (capabilities.IsEnabled)
 			{
 				if (this.Log().IsEnabled(LogLevel.Debug))
 				{
-					this.Log().Debug($"Decrypting the fingerprint for the key '{keyName}'.");
+					this.Log().Debug($"Decrypting the fingerprint for the key '{key}'.");
 				}
 
 				try
 				{
-					var key = RetrieveKey(keyName, await _description(ct));
-
-					if (key != null)
-					{
-						var result = Encoding.ASCII.GetString(await BiometryHelper.DecryptData(data, key));
-
-						if (this.Log().IsEnabled(LogLevel.Information))
-						{
-							this.Log().Info($"Successfully decrypted the fingerprint for the key '{keyName}'.");
-						}
-
-						return result;
-					}
-					else
-					{
-						if (this.Log().IsEnabled(LogLevel.Information))
-						{
-							this.Log().Info($"Return null as the key is null.");
-						}
-
-						return null;
-					}
+				   return RetrieveKey(key, await _description(ct));
 				}
 				catch (SecurityException ex)
 				{
@@ -231,7 +204,7 @@ namespace BiometryService
             {
 				if (this.Log().IsEnabled(LogLevel.Debug))
 				{
-					this.Log().Debug($"Can not decrypt '{keyName}'.");
+					this.Log().Debug($"Can not decrypt '{key}'.");
 				}
 				return null;
 			}
@@ -318,7 +291,7 @@ namespace BiometryService
 			}
 		}
 
-		private void SaveKey(string keyName, byte[] keyData)
+		private void SaveKey(string keyName, string value)
 		{
 			if (this.Log().IsEnabled(LogLevel.Debug))
 			{
@@ -339,7 +312,7 @@ namespace BiometryService
 					_fallbackOnPasscodeAuthentication ? SecAccessControlCreateFlags.UserPresence : SecAccessControlCreateFlags.TouchIDCurrentSet
 				);
 
-				record.Generic = NSData.FromArray(keyData);
+				record.Generic = NSData.FromString(value);
 
 				var result = SecKeyChain.Add(record);
 
@@ -359,7 +332,7 @@ namespace BiometryService
 			}
 		}
 
-		private byte[] RetrieveKey(string keyName, string prompt)
+		private string RetrieveKey(string keyName, string prompt)
 		{
 			if (this.Log().IsEnabled(LogLevel.Debug))
 			{
@@ -383,7 +356,7 @@ namespace BiometryService
 						this.Log().Info($"Successfully retrieved the key pair (key name: '{keyName}', prompt: '{prompt}').");
 					}
 
-					return key.Generic.ToArray();
+					return key.Generic.ToString();
 				case SecStatusCode.AuthFailed:
 
 					if (this.Log().IsEnabled(LogLevel.Information))
@@ -391,7 +364,7 @@ namespace BiometryService
 						this.Log().Info($"Could not retrieve the key due to a failed authentication (key name: '{keyName}', prompt: '{prompt}').");
 					}
 
-					return default(byte[]);
+					return null;
 				case SecStatusCode.ItemNotFound:
 					throw new ArgumentException("Key not found.");
 				default:
