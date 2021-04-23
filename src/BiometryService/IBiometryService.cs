@@ -23,14 +23,14 @@ namespace BiometryService
 		BiometryCapabilities GetCapabilities();
 
 		/// <summary>
-		///     Authenticate the user using biometrics.
+		///     Validate the user identity.
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
 		/// <returns>An <see cref="BiometryResult" /> enum value.</returns>
 		Task<BiometryResult> ValidateIdentity(CancellationToken ct);
 
 		/// <summary>
-		/// Encrypt the string value to an array of byte data
+		///     Encrypt the value and store the key into the platform secure storage.
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
 		/// <param name="key">The name of the Key.</param>
@@ -39,7 +39,7 @@ namespace BiometryService
 		Task Encrypt(CancellationToken ct, string key, string value);
 
 		/// <summary>
-		/// Decodes the array of byte data to a string value
+		///     Retrieve and decrypt data associated to the key.
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
 		/// <param name="key">The name of the Key.</param>
