@@ -62,9 +62,8 @@ namespace BiometryService
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
 		/// <param name="key">The key for the value.</param>
-		/// <param name="data">An Array of byte to decrypt.</param>
 		/// <returns>A string</returns>
-		public async Task<string> Decrypt(CancellationToken ct, string key, byte[] data)
+		public async Task<string> Decrypt(CancellationToken ct, string key)
 		{
 			if (this.Log().IsEnabled(LogLevel.Debug))
 			{
@@ -72,43 +71,7 @@ namespace BiometryService
 			}
 
 			key.Validation().NotNullOrEmpty(nameof(key));
-			data.Validation().NotNull(nameof(data));
-			data.Validation().IsTrue(array => array.Length >= 32, nameof(data), "Data is invalid.");
-
-			await AssertIsEnabled(ct);
-
-			using (await _asyncLock.LockAsync(ct))
-			{
-				using (Aes aes = Aes.Create())
-				{
-					aes.BlockSize = 128;
-					aes.KeySize = 256;
-					aes.Mode = CipherMode.CBC;
-					aes.Padding = PaddingMode.PKCS7;
-
-					var iv = new byte[16];
-					Array.ConstrainedCopy(data, 0, iv, 0, 16);
-
-					aes.IV = iv;
-					aes.Key = RetrieveKey(key);
-
-					using (var ms = new MemoryStream(data))
-					using (var outputStream = new MemoryStream())
-					using (var cryptoStream = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read))
-					{
-						ms.Seek(16, SeekOrigin.Begin);
-
-						await cryptoStream.CopyToAsync(outputStream, 81920, ct);
-
-						if (this.Log().IsEnabled(LogLevel.Information))
-						{
-							this.Log().Info($"Successfully decrypted the fingerprint (key name: '{key}').");
-						}
-
-						return Encoding.ASCII.GetString(outputStream.ToArray());
-					}
-				}
-			}
+			return null;
 		}
 
 		/// <summary>

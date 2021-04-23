@@ -180,9 +180,8 @@ namespace BiometryService
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
 		/// <param name="key">The key for the value.</param>
-		/// <param name="data">An Array of byte to decrypt.</param>
 		/// <returns>A string</returns>
-		public async Task<string> Decrypt(CancellationToken ct, string key, byte[] data)
+		public async Task<string> Decrypt(CancellationToken ct, string key)
 		{
 			var capabilities = GetCapabilities();
 			if (capabilities.IsEnabled)
