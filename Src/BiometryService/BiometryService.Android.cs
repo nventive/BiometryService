@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Android.Content;
 using Android.Security.Keystore;
+using Android.Util;
 using AndroidX.Biometric;
 using AndroidX.Core.Content;
 using AndroidX.Fragment.App;
@@ -111,7 +112,7 @@ namespace BiometryService
             var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
             var storedData = sharedpref.GetString(key,null);
 
-            byte[] data = Encoding.ASCII.GetBytes(storedData);
+            byte[] data = Base64.Decode(storedData,Base64Flags.NoWrap);
 
             using (await _asyncLock.LockAsync(ct))
             {
@@ -163,9 +164,9 @@ namespace BiometryService
                     this.Log().Info($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
                 }
 
-                string encodedData = Encoding.ASCII.GetString(bytes);
+                string encodedData = Base64.EncodeToString(bytes,Base64Flags.NoWrap);
                 var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME,FileCreationMode.Private);
-                sharedpref.Edit().PutString(keyName, encodedData);
+                sharedpref.Edit().PutString(keyName, encodedData).Apply();
             }
         }
 
