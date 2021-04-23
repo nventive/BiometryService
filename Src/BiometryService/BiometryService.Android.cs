@@ -26,11 +26,12 @@ namespace BiometryService
     /// </summary>
     public class BiometryService : IBiometryService
     {
-        private const string ANDROID_KEYSTORE = "AndroidKeyStore";
+        private const string ANDROID_KEYSTORE = "AndroidKeyStore"; //Android constant, cannot be changed
         private const string CIPHER_NAME = "AES/CBC/PKCS7Padding";
         private const string CRYPTO_OBJECT_KEY_NAME = "BiometricService.UserAuthentication.Services.FingerprintService.CryptoObject";
         private const string CURVE_NAME = "secp256r1";
         private const string SIGNATURE_NAME = "SHA256withECDSA";
+        private const string PREFERENCE_NAME = "BiometricPreferences";
 
         private readonly BiometricPrompt _biometricPrompt;
         private readonly BiometricManager _biometricManager;
@@ -41,6 +42,7 @@ namespace BiometryService
         private readonly CoreDispatcher _dispatcher;
         private readonly AsyncLock _asyncLock = new AsyncLock();
         private TaskCompletionSource<BiometricPrompt.AuthenticationResult> _authenticationCompletionSource;
+        private readonly Context _applicationContext;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="BiometryService" /> class.
@@ -62,6 +64,7 @@ namespace BiometryService
             _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
             _promptInfoBuilder = promptInfoBuilder ?? throw new ArgumentNullException(nameof(promptInfoBuilder));
 
+            _applicationContext = applicationContext;
             var executor = ContextCompat.GetMainExecutor(applicationContext);
             var callback = new AuthenticationCallback(OnAuthenticationSucceeded, OnAuthenticationFailed, OnAuthenticationError);
 
@@ -94,18 +97,21 @@ namespace BiometryService
         ///     Decodes the array of byte data to a string value
         /// </summary>
         /// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-        /// <param name="key">The key for the value.</param>
+        /// <param name="keyName">The key for the value.</param>
         /// <param name="data">An Array of byte to decrypt.</param>
         /// <returns>A string</returns>
-        public async Task<string> Decrypt(CancellationToken ct, string key, byte[] data)
+        public async Task<string> Decrypt(CancellationToken ct, string key)
         {
             if (this.Log().IsEnabled(LogLevel.Debug))
             {
                 this.Log().Debug($"Decrypting the fingerprint for the key '{key}'.");
             }
-
             key.Validation().NotNullOrEmpty(nameof(key));
-            data.Validation().NotNull(nameof(data));
+
+            var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
+            var storedData = sharedpref.GetString(key,null);
+
+            byte[] data = Encoding.ASCII.GetBytes(storedData);
 
             using (await _asyncLock.LockAsync(ct))
             {
@@ -120,7 +126,6 @@ namespace BiometryService
                 {
                     this.Log().Info($"Succcessfully decrypted the fingerprint for the key '{key}'.");
                 }
-
                 return Encoding.ASCII.GetString(decryptedData);
             }
         }
@@ -129,23 +134,23 @@ namespace BiometryService
         ///     Encrypt the string value to an array of byte data
         /// </summary>
         /// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-        /// <param name="key">The key for the value.</param>
+        /// <param name="keyName">The key for the value.</param>
         /// <param name="value">A string value to encrypt.</param>
         /// <returns>An array of byte</returns>
-        public async Task Encrypt(CancellationToken ct, string key, string value)
+        public async Task Encrypt(CancellationToken ct, string keyName, string value)
         {
             if (this.Log().IsEnabled(LogLevel.Debug))
             {
-                this.Log().Debug($"Encrypting the fingerprint for the key '{key}'.");
+                this.Log().Debug($"Encrypting the fingerprint for the key '{keyName}'.");
             }
 
-            key.Validation().NotNullOrEmpty(nameof(key));
+            keyName.Validation().NotNullOrEmpty(nameof(keyName));
             value.Validation().NotNull(nameof(value));
 
             using (await _asyncLock.LockAsync(ct))
             {
-                var crypto = BuildSymmetricCryptoObject(key, CIPHER_NAME, CipherMode.EncryptMode);
-                var result = await AuthenticateAndProcess(ct, key, crypto) ?? throw new System.OperationCanceledException();
+                var crypto = BuildSymmetricCryptoObject(keyName, CIPHER_NAME, CipherMode.EncryptMode);
+                var result = await AuthenticateAndProcess(ct, keyName, crypto) ?? throw new System.OperationCanceledException();
                 var encryptedData = result.CryptoObject.Cipher.DoFinal(Encoding.ASCII.GetBytes(value));
                 var iv = result.CryptoObject.Cipher.GetIV();
 
@@ -155,8 +160,12 @@ namespace BiometryService
 
                 if (this.Log().IsEnabled(LogLevel.Information))
                 {
-                    this.Log().Info($"Succcessfully encrypted the fingerprint for the key'{key}'.");
+                    this.Log().Info($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
                 }
+
+                string encodedData = Encoding.ASCII.GetString(bytes);
+                var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME,FileCreationMode.Private);
+                sharedpref.Edit().PutString(keyName, encodedData);
             }
         }
 
