@@ -33,18 +33,18 @@ namespace BiometryService
 		/// Encrypt the string value to an array of byte data
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="keyName">The name of the Key.</param>
+		/// <param name="key">The name of the Key.</param>
 		/// <param name="value">The value to be encrypt.</param>
 		/// <returns>An array of byte.</returns>
-		Task<byte[]> Encrypt(CancellationToken ct, string keyName, string value);
+		Task Encrypt(CancellationToken ct, string key, string value);
 
 		/// <summary>
 		/// Decodes the array of byte data to a string value
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="keyName">The name of the Key.</param>
+		/// <param name="key">The name of the Key.</param>
 		/// <param name="data">The data to be decrypt.</param>
 		/// <returns>A string</returns>
-		Task<string> Decrypt(CancellationToken ct, string keyName, byte[] data);
+		Task<string> Decrypt(CancellationToken ct, string key, byte[] data);
 	}
 }
