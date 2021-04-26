@@ -19,6 +19,16 @@ variables:
   value: BiometryService.sln
 - name: IsReleaseBranch # Should this branch name use the release stage
   value: $[or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/feature/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'))]
+- name:  AppCenterAndroidSlug
+  value: 'nventive-framework/Biometry-Service-1'
+- name:  AppCenteriOSSlug
+  value: 'nventive-framework/Biometry-Service'
+- name:  InternalProvisioningProfile
+  value: com.nventive.internal.biometrysample.mobileprovision # This is the internal provisioning profile for internal builds.
+- name:  InternalCertificate
+  value: nventive.internal.p12 # This is the certificate from the entreprise account used to sign internal builds.
+- name:  InternalKeystore
+  value: com.nventive.internal.applicationtemplate.jks
 
 stages:
 - stage: Build
@@ -46,6 +56,13 @@ stages:
 
     steps:
     - template: stage-build.yml
+      parameters:
+        applicationEnvironment: Staging
+        androidKeyStoreFile: $(InternalKeystore) # Utilisation of Uno Application for tests purposes
+        androidVariableGroup: 'ApplicationTemplate.Distribution.Internal.Android' # Utilisation of Uno Application for tests purposes
+        iosProvisioningProfileFile: $(InternalProvisioningProfile)
+        iosCertificateFile: $(InternalCertificate)
+        iosVariableGroup: 'BiometryService.Distribution.Internal.iOS'
 
 - stage: Release
   # Only release when the build is not for a Pull Request and branch name fits
@@ -61,3 +78,11 @@ stages:
 
     steps:
     - template: stage-release.yml
+      parameters:
+        applicationEnvironment: Staging
+        deploymentEnvironment: AppCenter
+        appCenteriOSSlug: $(AppCenteriOSSlug)
+        appCenterAndroidSlug: $(AppCenterAndroidSlug)
+        androidKeyStoreFile: $(InternalKeystore) # Utilisation of Uno Application for tests purposes
+        androidVariableGroup: 'ApplicationTemplate.Distribution.Internal.Android' # Utilisation of Uno Application for tests purposes
+
