@@ -80,7 +80,7 @@ namespace BiometryService
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
 		/// <param name="key">The key for the value.</param>
 		/// <param name="value">A string value to encrypt.</param>
-		/// <returns>An array of byte</returns>
+		/// <returns>A string</returns>
 		public async Task Encrypt(CancellationToken ct, string key, string value)
 		{
 			if (this.Log().IsEnabled(LogLevel.Debug))
