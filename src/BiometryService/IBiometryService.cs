@@ -35,7 +35,7 @@ namespace BiometryService
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
 		/// <param name="key">The name of the Key.</param>
 		/// <param name="value">The value to be encrypt.</param>
-		/// <returns>An array of byte.</returns>
+		/// <returns>A string.</returns>
 		Task Encrypt(CancellationToken ct, string key, string value);
 
 		/// <summary>

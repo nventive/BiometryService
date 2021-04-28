@@ -97,7 +97,7 @@ namespace BiometryService
 		///     Retrieve and decrypt data associated to the key.
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="keyName">The key for the value.</param>
+		/// <param name="key">The key for the value.</param>
 		/// <returns>A string</returns>
 		public async Task<string> Decrypt(CancellationToken ct, string key)
 		{
@@ -135,7 +135,7 @@ namespace BiometryService
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
 		/// <param name="keyName">The key for the value.</param>
 		/// <param name="value">A string value to encrypt.</param>
-		/// <returns>An array of byte</returns>
+		/// <returns>A string</returns>
 		public async Task Encrypt(CancellationToken ct, string keyName, string value)
 		{
 			if (this.Log().IsEnabled(LogLevel.Debug))
