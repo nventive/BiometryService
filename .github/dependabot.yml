@@ -1,0 +1,25 @@
+version: 2
+updates:
+- package-ecosystem: nuget
+  directory: "/"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  labels:
+  - kind/dependency
+  - do-not-merge/work-in-progress
+  ignore:
+  - dependency-name: Uno.UI
+    versions:
+    - 3.1.12
+    - 3.1.14
+    - 3.5.1
+  - dependency-name: System.Reactive.Linq
+    versions:
+    - 5.0.0
+  - dependency-name: Microsoft.Extensions.Logging
+    versions:
+    - 5.0.0
+  commit-message:
+    prefix: chore
+    include: scope
