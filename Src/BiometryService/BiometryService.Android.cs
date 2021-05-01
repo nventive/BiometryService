@@ -88,7 +88,18 @@ namespace BiometryService
 			{
 				var response = await AuthenticateAndProcess(ct, CRYPTO_OBJECT_KEY_NAME);
 
-				var result = new BiometryResult();
+				switch (response.AuthenticationType)
+                {
+					case 
+
+                }
+
+                if (response.AuthenticationType == BiometryAuthenticationResult.Granted)
+                {
+
+                }
+
+                var result = new BiometryResult();
 				return result;
 			}
 		}
@@ -220,17 +231,17 @@ namespace BiometryService
 
 						return new BiometricPrompt.CryptoObject(cipher);
 					}
-					catch (KeyPermanentlyInvalidatedException)
+					catch (KeyPermanentlyInvalidatedException e)
 					{
 						_keyStore.DeleteEntry(keyName);
 
-						throw;
+						throw new BiometryException(e);
 					}
 				}
 			}
 			else if (mode == CipherMode.DecryptMode)
 			{
-				throw new ArgumentException("Key not found.");
+				throw new BiometryException("Key not found.");
 			}
 
 			GenerateSymmetricKey(keyName);
@@ -289,7 +300,7 @@ namespace BiometryService
 
 				if (authenticationTask.IsCanceled)
 				{
-					throw new OperationCanceledException();
+					throw new BiometryException("Biometry is cancelled");
 				}
 				return authenticationTask.Result;
 			}
@@ -297,7 +308,7 @@ namespace BiometryService
 			{
 				if (result == BiometricManager.BiometricErrorNoneEnrolled)
 				{
-					throw new InvalidOperationException("No fingerprint(s) registered.");
+					throw new BiometryException("No fingerprint(s) registered.");
 				}
 				else
 				{
@@ -306,7 +317,7 @@ namespace BiometryService
 						this.Log().Warn($"Fingerprint authentication is not available.");
 					}
 
-					throw new NotSupportedException("Fingerprint authentication is not available.");
+					throw new BiometryException("Fingerprint authentication is not available.");
 				}
 			}
 		}

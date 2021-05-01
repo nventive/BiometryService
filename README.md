@@ -1,30 +1,6 @@
-# Open Source Project Template
+# Biometry Service
 
-This repository contains a template to seed a repository for an Open Source
-project.
-
-## How to use this template
-
-1. Check out this repository
-2. Delete the `.git` folder
-3. Git init this repository and start working on your project!
-4. Prior to submitting your request for publication, make sure to review the
-   [Open Source guidelines for publications](https://nventive.visualstudio.com/Internal/_wiki/wikis/Internal_wiki?wikiVersion=GBwikiMaster&pagePath=%2FOpen%20Source%2FPublishing&pageId=7120).
-
-## Features (to keep as-is, configure or remove)
-- [Mergify](https://mergify.io/) is configured. You can edit or remove [.mergify.yml](/.mergify.yml).
-- [allcontributors](https://allcontributors.org/) is configured. It helps adding contributors to the README.
-- [dependabot](https://dependabot.com/) is configured. This bot will open pull requests automatically to update nuget dependencies. This one could be annoying, feel free to remove the [.dependabot](/.dependabot) folder.
-
-The following is the template for the final README.md file:
-
----
-
-# Project Title
-
-{Project tag line}
-
-{Small description of the purpose of the project}
+This library provides tools to use biometry features of Android, iOS and UWP.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
@@ -36,6 +12,15 @@ to install, sample code, etc.}
 ## Features
 
 {More details/listing of features of the project}
+
+### GetCapabilities
+
+Returns the device's current biometric capabilities. Capabilities in terms of knowing which type of biometry is present if any, if passcode is set or if biometry is enabled.
+
+### Encrypt
+Encrypt the value and store the key into the platform secure storage.
+### Decrypt
+Retrieve and decrypt data associated to the key.
 
 ## Changelog
 

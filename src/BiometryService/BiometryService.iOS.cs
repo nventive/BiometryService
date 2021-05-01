@@ -101,19 +101,19 @@ namespace BiometryService
 			var capabilities = GetCapabilities();
 			if (!capabilities.PasscodeIsSet)
 			{
-				throw new Exception(
+				throw new BiometryException(
 					"No passcode/password is set on the device. To avoid catching this exception: call GetCapabilities() and inspect if the passcode/password is set or not before calling this method.");
 			}
 
 			if (!capabilities.IsSupported)
 			{
-				throw new Exception(
+				throw new BiometryException(
 					"Biometrics not available (no hardware support OR user has disabled FaceID/TouchID for the app). To avoid catching this exception: call GetCapabilities() and inspect if the biometrics is supported before calling this method.");
 			}
 
 			if (!capabilities.IsEnabled)
 			{
-				throw new Exception(
+				throw new BiometryException(
 					"Biometrics not enrolled (no finger xor face was added by the user). To avoid catching this exception: call GetCapabilities() and inspect if biometrics is enabled before calling this method.");
 			}
 
@@ -123,7 +123,7 @@ namespace BiometryService
 				var faceIDUsageDescription = ((NSString)NSBundle.MainBundle.InfoDictionary["NSFaceIDUsageDescription"])?.ToString();
 				if (string.IsNullOrEmpty(faceIDUsageDescription))
 				{
-					throw new MissingFieldException("Please add a NSFaceIDUsageDescription key in the `Info.plist` file.");
+					throw new BiometryException("Please add a NSFaceIDUsageDescription key in the `Info.plist` file.");
 				}
 			}
 
@@ -162,7 +162,7 @@ namespace BiometryService
 				}
 				catch (SecurityException ex)
 				{
-					throw new OperationCanceledException("Encryption was cancelled.", ex);
+					throw new BiometryException(string.Format("Encryption was cancelled. {0}", ex));
 				}
 			}
 			else
@@ -196,7 +196,7 @@ namespace BiometryService
 				}
 				catch (SecurityException ex)
 				{
-					throw new OperationCanceledException("Decryption was cancelled.", ex);
+					throw new BiometryException(string.Format("Decryption was cancelled. {0}", ex));
 				}				
 			} else
             {
@@ -364,7 +364,7 @@ namespace BiometryService
 
 					return null;
 				case SecStatusCode.ItemNotFound:
-					throw new ArgumentException("Key not found.");
+					throw new BiometryException("Key not found.");
 				default:
 					throw new SecurityException(result);
 			}

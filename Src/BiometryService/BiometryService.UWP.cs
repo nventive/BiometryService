@@ -166,7 +166,7 @@ namespace BiometryService
 
 				if (supported)
 				{
-					throw new InvalidOperationException("No fingerprint(s) registered.");
+					throw new BiometryException("No fingerprint(s) registered.");
 				}
 				else
 				{
@@ -175,7 +175,7 @@ namespace BiometryService
 						this.Log().Warn("Fingerprint authentication is not available.");
 					}
 
-					throw new NotSupportedException("Fingerprint authentication is not available.");
+					throw new BiometryException("Fingerprint authentication is not available.");
 				}
 			}
 		}
