@@ -20,7 +20,7 @@ namespace BiometryService
 		///     </para>
 		/// </remarks>
 		/// <returns>A <see cref="BiometryCapabilities" /> struct instance.</returns>
-		BiometryCapabilities GetCapabilities();
+		Task<BiometryCapabilities> GetCapabilities();
 
 		/// <summary>
 		///     Validate the user identity.

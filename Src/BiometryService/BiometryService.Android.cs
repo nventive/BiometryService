@@ -172,7 +172,7 @@ namespace BiometryService
 		///     Gets the device's current biometric capabilities.
 		/// </summary>
 		/// <returns>A <see cref="BiometryCapabilities" /> struct instance.</returns>
-		public BiometryCapabilities GetCapabilities()
+		public Task<BiometryCapabilities> GetCapabilities()
 		{
 			bool _isEnabled = false;
 			switch (_biometricManager.CanAuthenticate(BiometricManager.Authenticators.BiometricStrong))
@@ -194,7 +194,10 @@ namespace BiometryService
 			}
 			bool devicePinAvailable = Convert.ToBoolean(_biometricManager.CanAuthenticate(BiometricManager.Authenticators.DeviceCredential));
 
-			return new BiometryCapabilities(BiometryType.FaceOrFingerprint, _isEnabled, devicePinAvailable);
+			return Task.Run(() =>
+			{
+				return new BiometryCapabilities(BiometryType.FaceOrFingerprint, _isEnabled, devicePinAvailable);
+			});
 		}
 
 		private BiometricPrompt.CryptoObject BuildSymmetricCryptoObject(string keyName, string cipherName, CipherMode mode, byte[] iv = null)

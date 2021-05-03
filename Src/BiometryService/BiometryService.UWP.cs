@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Uno.Extensions;
 using Uno.Logging;
 using Windows.Foundation.Collections;
+using Windows.Security.Credentials;
 using Windows.Storage;
 using AsyncLock = Uno.Threading.AsyncLock;
 
@@ -129,9 +130,10 @@ namespace BiometryService
 		///     Gets the device's current biometric capabilities.
 		/// </summary>
 		/// <returns>A <see cref="BiometryCapabilities" /> struct instance.</returns>
-		public BiometryCapabilities GetCapabilities()
+		public async Task<BiometryCapabilities> GetCapabilities()
 		{
-			return new BiometryCapabilities(BiometryType.Fingerprint, true, true);
+			bool windowsHelloAvailable = await KeyCredentialManager.IsSupportedAsync();
+			return new BiometryCapabilities(windowsHelloAvailable ? BiometryType.FaceOrFingerprint : BiometryType.None, windowsHelloAvailable, true);
 		}
 
 		/// <summary>
@@ -146,7 +148,7 @@ namespace BiometryService
 				this.Log().Debug("Authenticating the fingerprint.");
 			}
 
-			await AssertIsEnabled(ct);
+			await KeyCredentialManager.IsSupportedAsync();
 
 			if (this.Log().IsEnabled(LogLevel.Information))
 			{
