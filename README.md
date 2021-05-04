@@ -1,41 +1,36 @@
-# Open Source Project Template
+# Biometry Service
 
-This repository contains a template to seed a repository for an Open Source
-project.
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-## How to use this template
-
-1. Check out this repository
-2. Delete the `.git` folder
-3. Git init this repository and start working on your project!
-4. Prior to submitting your request for publication, make sure to review the
-   [Open Source guidelines for publications](https://nventive.visualstudio.com/Internal/_wiki/wikis/Internal_wiki?wikiVersion=GBwikiMaster&pagePath=%2FOpen%20Source%2FPublishing&pageId=7120).
-
-## Features (to keep as-is, configure or remove)
-- [Mergify](https://mergify.io/) is configured. You can edit or remove [.mergify.yml](/.mergify.yml).
-- [allcontributors](https://allcontributors.org/) is configured. It helps adding contributors to the README.
-- [dependabot](https://dependabot.com/) is configured. This bot will open pull requests automatically to update nuget dependencies. This one could be annoying, feel free to remove the [.dependabot](/.dependabot) folder.
-
-The following is the template for the final README.md file:
-
----
-
-# Project Title
-
-{Project tag line}
-
-{Small description of the purpose of the project}
+This library offer a simple contract to use the biometry across Android, IOS and UWP. 
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ## Getting Started
 
-{Instructions to quickly get started using the project: pre-requisites, packages
-to install, sample code, etc.}
+Install the latest version of BiometryService Nuger "Add Nuget Reference"
+A small sample is available as a playground.
 
 ## Features
 
-{More details/listing of features of the project}
+The biometryService Interface 'IBiometryService' Implement the following method :
+
+- GetGapabilites
+- ValidateIdentity
+- Encryt
+- Decrypt
+
+### GetGapabilites
+This method help to check the hardawre available on the device.
+
+### ValidateIdentity
+This method help to authenticate the user by returning an Enum 'BiometryAuthenticationResult'
+
+### Encrypt
+
+### Decrypt
 
 ## Changelog
 

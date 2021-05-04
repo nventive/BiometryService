@@ -89,6 +89,20 @@ namespace BiometryService
 				var response = await AuthenticateAndProcess(ct, CRYPTO_OBJECT_KEY_NAME);
 
 				var result = new BiometryResult();
+
+				if (response.AuthenticationType == 0) //BiometryAuthenticationResult.Granted
+				{
+					result.AuthenticationResult = BiometryAuthenticationResult.Granted;
+				}
+				else if (response.AuthenticationType == 1) //BiometryAuthenticationResult.Denied
+				{
+					result.AuthenticationResult = BiometryAuthenticationResult.Denied;
+				}
+				else if (response.AuthenticationType == 2) //BiometryAuthenticationResult.Cancelled
+				{
+					result.AuthenticationResult = BiometryAuthenticationResult.Cancelled;
+				}
+
 				return result;
 			}
 		}
@@ -353,7 +367,7 @@ namespace BiometryService
 					_authenticationCompletionSource.SetCanceled();
 					return;
 				default:
-					_authenticationCompletionSource.TrySetException(new AuthenticationError(code, message));
+					_authenticationCompletionSource.TrySetException(new BiometryException(code, message));
 					return;
 			}
 		}

@@ -18,22 +18,21 @@ namespace BiometryService
 	}
 
 	/// <summary>
-	///     The class for AuthenticationErrors
+	///     The class for BiometryException
 	/// </summary>
-	public class AuthenticationError : Exception
+	public class BiometryException : Exception
 	{
-		/// <summary>
-		///     Constructor of AuthenticationError
-		/// </summary>
-		/// <param name="code">An integer Code.</param>
-		/// <param name="message">A string message.</param>
-		public AuthenticationError(int code, string message) : base(message)
+		public BiometryException()
 		{
-			this.Code = code;
 		}
 
-		/// <value>Gets and sets the value of Code.</value>
-		public int Code { get; }
+		public BiometryException(int code, string message) : base(message)
+		{
+		}
+
+		public BiometryException(Exception exception)
+		{
+		}
 	}
 
 	/// <summary>

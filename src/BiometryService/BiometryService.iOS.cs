@@ -124,14 +124,27 @@ namespace BiometryService
 				var faceIDUsageDescription = ((NSString)NSBundle.MainBundle.InfoDictionary["NSFaceIDUsageDescription"])?.ToString();
 				if (string.IsNullOrEmpty(faceIDUsageDescription))
 				{
-					throw new MissingFieldException("Please add a NSFaceIDUsageDescription key in the `Info.plist` file.");
+					throw new BiometryException(0,"Please add a NSFaceIDUsageDescription key in the `Info.plist` file.");
 				}
 			}
 
 			var (_, laError) = await context.EvaluatePolicyAsync(_localAuthenticationPolicy, context.LocalizedReason);
 			var evaluatePolicyResult = GetAuthenticationResultFrom(laError);
 
-			return new BiometryResult();
+			var result = new BiometryResult();
+			switch (evaluatePolicyResult)
+			{
+				case BiometryAuthenticationResult.Granted:
+					result.AuthenticationResult = BiometryAuthenticationResult.Granted; 
+					break;
+				case BiometryAuthenticationResult.Cancelled:
+					result.AuthenticationResult = BiometryAuthenticationResult.Cancelled;
+					break;
+				case BiometryAuthenticationResult.Denied:
+					result.AuthenticationResult = BiometryAuthenticationResult.Denied;
+					break;
+			}
+			return result;
 		}
 
 		/// <summary>
