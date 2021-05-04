@@ -88,19 +88,22 @@ namespace BiometryService
 			{
 				var response = await AuthenticateAndProcess(ct, CRYPTO_OBJECT_KEY_NAME);
 
-				switch (response.AuthenticationType)
-                {
-					case 
+				var result = new BiometryResult();
 
+				if (response.AuthenticationType == 0) //BiometryAuthenticationResult.Granted
+				{
+					result.AuthenticationResult = BiometryAuthenticationResult.Granted;
+				}
+				else if (response.AuthenticationType == 1) //BiometryAuthenticationResult.Denied
+				{
+					result.AuthenticationResult = BiometryAuthenticationResult.Denied;
                 }
-
-                if (response.AuthenticationType == BiometryAuthenticationResult.Granted)
-                {
-
+				else if (response.AuthenticationType == 2) //BiometryAuthenticationResult.Cancelled
+				{
+					result.AuthenticationResult = BiometryAuthenticationResult.Cancelled;
                 }
-
-                var result = new BiometryResult();
-				return result;
+				
+				return result;               
 			}
 		}
 
