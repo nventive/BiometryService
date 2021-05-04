@@ -1,0 +1,8 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <!-- For MSBuild.Sdk.Extras on Unix, ignore a warning about using dotnet-core or dotnet-5. -->
+	<_SdkIgnoreMSBuildCoreWarning>true</_SdkIgnoreMSBuildCoreWarning>
+  </PropertyGroup>
+
+</Project>
