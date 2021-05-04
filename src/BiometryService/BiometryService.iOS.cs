@@ -45,7 +45,7 @@ namespace BiometryService
 		///     Gets the device's current biometric capabilities.
 		/// </summary>
 		/// <returns>A <see cref="BiometryCapabilities" /> struct instance.</returns>
-		public BiometryCapabilities GetCapabilities()
+		public Task<BiometryCapabilities> GetCapabilities()
 		{
 			var context = new LAContext();
 			context.CanEvaluatePolicy(_localAuthenticationPolicy, out var laError);
@@ -81,9 +81,10 @@ namespace BiometryService
 					biometryIsEnabled = false;
 				}
 			}
-
-			var capabilities = new BiometryCapabilities(biometryType, biometryIsEnabled, passcodeIsSet);
-			return capabilities;
+			return Task.Run(() =>
+			{
+				return new BiometryCapabilities(biometryType, biometryIsEnabled, passcodeIsSet);
+			});
 		}
 
 		/// <summary>
@@ -98,7 +99,7 @@ namespace BiometryService
 			context.LocalizedFallbackTitle = _options.LocalizedFallbackButtonText;
 			context.LocalizedCancelTitle = _options.LocalizedCancelButtonText;
 
-			var capabilities = GetCapabilities();
+			var capabilities = await GetCapabilities();
 			if (!capabilities.PasscodeIsSet)
 			{
 				throw new Exception(
@@ -123,14 +124,27 @@ namespace BiometryService
 				var faceIDUsageDescription = ((NSString)NSBundle.MainBundle.InfoDictionary["NSFaceIDUsageDescription"])?.ToString();
 				if (string.IsNullOrEmpty(faceIDUsageDescription))
 				{
-					throw new MissingFieldException("Please add a NSFaceIDUsageDescription key in the `Info.plist` file.");
+					throw new BiometryException(0,"Please add a NSFaceIDUsageDescription key in the `Info.plist` file.");
 				}
 			}
 
 			var (_, laError) = await context.EvaluatePolicyAsync(_localAuthenticationPolicy, context.LocalizedReason);
 			var evaluatePolicyResult = GetAuthenticationResultFrom(laError);
 
-			return new BiometryResult();
+			var result = new BiometryResult();
+			switch (evaluatePolicyResult)
+			{
+				case BiometryAuthenticationResult.Granted:
+					result.AuthenticationResult = BiometryAuthenticationResult.Granted; 
+					break;
+				case BiometryAuthenticationResult.Cancelled:
+					result.AuthenticationResult = BiometryAuthenticationResult.Cancelled;
+					break;
+				case BiometryAuthenticationResult.Denied:
+					result.AuthenticationResult = BiometryAuthenticationResult.Denied;
+					break;
+			}
+			return result;
 		}
 
 		/// <summary>
@@ -142,7 +156,7 @@ namespace BiometryService
 		/// <returns>A string</returns>
 		public async Task Encrypt(CancellationToken ct, string key, string value)
 		{
-			var capabilities = GetCapabilities();
+			var capabilities = await GetCapabilities();
 			if (capabilities.IsEnabled)
 			{
 				if (this.Log().IsEnabled(LogLevel.Debug))
@@ -166,12 +180,12 @@ namespace BiometryService
 				}
 			}
 			else
-            {
+			{
 				if (this.Log().IsEnabled(LogLevel.Debug))
 				{
 					this.Log().Debug($"Can not encrypt '{key}'.");
 				}
-			}						
+			}
 		}
 
 		/// <summary>
@@ -182,7 +196,7 @@ namespace BiometryService
 		/// <returns>A string</returns>
 		public async Task<string> Decrypt(CancellationToken ct, string key)
 		{
-			var capabilities = GetCapabilities();
+			var capabilities = await GetCapabilities();
 			if (capabilities.IsEnabled)
 			{
 				if (this.Log().IsEnabled(LogLevel.Debug))
@@ -192,14 +206,15 @@ namespace BiometryService
 
 				try
 				{
-				   return RetrieveKey(key, await _description(ct));
+					return RetrieveKey(key, await _description(ct));
 				}
 				catch (SecurityException ex)
 				{
 					throw new OperationCanceledException("Decryption was cancelled.", ex);
-				}				
-			} else
-            {
+				}
+			}
+			else
+			{
 				if (this.Log().IsEnabled(LogLevel.Debug))
 				{
 					this.Log().Debug($"Can not decrypt '{key}'.");

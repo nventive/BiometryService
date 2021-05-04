@@ -89,6 +89,20 @@ namespace BiometryService
 				var response = await AuthenticateAndProcess(ct, CRYPTO_OBJECT_KEY_NAME);
 
 				var result = new BiometryResult();
+
+				if (response.AuthenticationType == 0) //BiometryAuthenticationResult.Granted
+				{
+					result.AuthenticationResult = BiometryAuthenticationResult.Granted;
+				}
+				else if (response.AuthenticationType == 1) //BiometryAuthenticationResult.Denied
+				{
+					result.AuthenticationResult = BiometryAuthenticationResult.Denied;
+				}
+				else if (response.AuthenticationType == 2) //BiometryAuthenticationResult.Cancelled
+				{
+					result.AuthenticationResult = BiometryAuthenticationResult.Cancelled;
+				}
+
 				return result;
 			}
 		}
@@ -172,7 +186,7 @@ namespace BiometryService
 		///     Gets the device's current biometric capabilities.
 		/// </summary>
 		/// <returns>A <see cref="BiometryCapabilities" /> struct instance.</returns>
-		public BiometryCapabilities GetCapabilities()
+		public Task<BiometryCapabilities> GetCapabilities()
 		{
 			bool _isEnabled = false;
 			switch (_biometricManager.CanAuthenticate(BiometricManager.Authenticators.BiometricStrong))
@@ -194,7 +208,10 @@ namespace BiometryService
 			}
 			bool devicePinAvailable = Convert.ToBoolean(_biometricManager.CanAuthenticate(BiometricManager.Authenticators.DeviceCredential));
 
-			return new BiometryCapabilities(BiometryType.FaceOrFingerprint, _isEnabled, devicePinAvailable);
+			return Task.Run(() =>
+			{
+				return new BiometryCapabilities(BiometryType.FaceOrFingerprint, _isEnabled, devicePinAvailable);
+			});
 		}
 
 		private BiometricPrompt.CryptoObject BuildSymmetricCryptoObject(string keyName, string cipherName, CipherMode mode, byte[] iv = null)
@@ -350,7 +367,7 @@ namespace BiometryService
 					_authenticationCompletionSource.SetCanceled();
 					return;
 				default:
-					_authenticationCompletionSource.TrySetException(new AuthenticationError(code, message));
+					_authenticationCompletionSource.TrySetException(new BiometryException(code, message));
 					return;
 			}
 		}
