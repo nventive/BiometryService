@@ -39,7 +39,6 @@ namespace BiometryService
 		private readonly BiometricManager _biometricManager;
 		private readonly FuncAsync<BiometricPrompt.PromptInfo> _promptInfoBuilder;
 		private readonly KeyStore _keyStore;
-		private readonly int _authenticators;
 
 		private readonly CoreDispatcher _dispatcher;
 		private readonly AsyncLock _asyncLock = new AsyncLock();
@@ -56,8 +55,7 @@ namespace BiometryService
 		public BiometryService(
 			FragmentActivity fragmentActivity,
 			CoreDispatcher dispatcher,
-			FuncAsync<BiometricPrompt.PromptInfo> promptInfoBuilder,
-			int authenticators)
+			FuncAsync<BiometricPrompt.PromptInfo> promptInfoBuilder)
 		{
 
 			fragmentActivity.Validation().NotNull(nameof(fragmentActivity));
@@ -74,7 +72,6 @@ namespace BiometryService
 			_keyStore = KeyStore.GetInstance(ANDROID_KEYSTORE);
 			_keyStore.Load(null);
 
-			_authenticators = authenticators;
 		}
 
 		/// <summary>
@@ -270,7 +267,12 @@ namespace BiometryService
 				this.Log().Debug($"Authenticating and processing the fingerprint (key name: '{keyName}').");
 			}
 
-			var result = _biometricManager.CanAuthenticate(_authenticators);
+			int result = 0;
+			if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
+				result = _biometricManager.CanAuthenticate(); 
+			else
+				result = _biometricManager.CanAuthenticate(BiometricManager.Authenticators.BiometricStrong);
+
 			if (result == BiometricManager.BiometricSuccess)
 			{
 				_authenticationCompletionSource = new TaskCompletionSource<BiometricPrompt.AuthenticationResult>();
