@@ -61,14 +61,15 @@ Encrypt/Decrypt method are only available with the following configuration `.Set
 An example of instantiation is as follow, with the fallback to the pin code with some text descriptions to display for the user.
 
 ```
-_biometryService = new BiometryService(MainActivity.Instance,
-                                CoreDispatcher.Main,
-                                ct => Task.FromResult(new BiometricPrompt.PromptInfo.Builder()
-                                .SetTitle("Biometrics SignIn")
-                                .SetSubtitle("Biometrics Confirm")
-                                .SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin
-                                .SetNegativeButtonText("Cancel")
-                                .Build()));
+_biometryService = new BiometryService(
+    MainActivity.Instance,
+    CoreDispatcher.Main,
+    ct => Task.FromResult(new BiometricPrompt.PromptInfo.Builder()
+    .SetTitle("Biometrics SignIn")
+    .SetSubtitle("Biometrics Confirm")
+    .SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin
+    .SetNegativeButtonText("Cancel")
+    .Build()));
 ```
 
 ## Methods
