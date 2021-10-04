@@ -6,7 +6,7 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-This library offer a simple contract to use the biometry across Android, IOS and UWP.
+This library offers a simple contract to use the biometry across Android, IOS and UWP.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
@@ -24,7 +24,7 @@ The biometryService Interface 'IBiometryService' Implement the following method 
 - Encryt
 - Decrypt
 
-As of now this is the list of features available per platform.
+As of now, this is the list of features available per platform.
 
 
 | Feature          | IOS | Android | UWP  |
@@ -53,11 +53,11 @@ An example of instantiation as follow with the fallback to the pin code with som
 
 - Android
 
-Face ID method is only available with the constante configuration `.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricWeak` during instantiation of the service.
+Face ID is only available with the followwing configuration `.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricWeak` during instantiation of the service.
 
-Encrypt/Decrypt method are only available with the constante configuration `.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong` during instantiation of the service.
+Encrypt/Decrypt method are only available with the following configuration `.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong` during instantiation of the service.
 
-An example of instantiation as follow with the fallback to the pin code with some text descriptions to display for the user.
+An example of instantiation is as follow, with the fallback to the pin code with some text descriptions to display for the user.
 
 ```
 			    _biometryService = new BiometryService(MainActivity.Instance,
@@ -72,7 +72,7 @@ An example of instantiation as follow with the fallback to the pin code with som
 
 ### GetGapabilites
 
-This method help to check the hardware status on the device.
+This method helps to check the hardware status on the device.
 `_biometryService.GetCapabilities();`
 
 It will return a struct `BiometryCapabilities` with the detailled device configuration.
@@ -94,11 +94,11 @@ It will return a struct `BiometryCapabilities` with the detailled device configu
 | Touch ID     | x                | x       | x       |
 | Fallback PIN | x                | x       | x       |
 
-On Android according to how the service is instantiate some feature might not be available and will throw errors.
+On Android depending on how the service is instantiated, some features might not be available and will throw errors.
 
 ### ValidateIdentity
 
-This method help to authenticate the user by returning an Enum `BiometryResult`.
+This method helps to authenticate the user by returning an Enum `BiometryResult`.
 `_biometryService.ValidateIdentity(ct);`
 
 ### Encrypt
@@ -108,27 +108,27 @@ The follow method do specific actions according to the platorm targeted.
 
 - IOS
 
-The `SecKeyChain` will be use to store a string linked to a key. IOS is in charge to secure the data with biometric Authentication during the process.
-In case of error, it throw a `SecurityException`.
+The `SecKeyChain` will be used to store a string linked to a key. IOS is in charge of securing the data with biometric Authentication during the process.
+In case of error, `SecurityException` is thrown.
 
 - Android
 
-A new `CryptoObject` from `AndroidX.Biometric` is created with a key as parameter. Then the data will be encrypted and presented to the `biometricPrompt` manager.
+A new `CryptoObject` from `AndroidX.Biometric` is created with a key as a parameter. Then the data will be encrypted and presented to the `biometricPrompt` manager.
 The final step will encode the data in base64 and store it in App with the shared preferences.
 
 
 ### Decrypt
 
-The follow method do specific actions according to the platorm targeted.
+The following method does specific actions according to the platform targeted.
 `await _biometryService.Decrypt(ct, "Secret");`
 
 - IOS
 
-Retrieve the encrypted data from the `SecKeyChain` with the secret as parameter. IOS is in charge to decrypt the data with biometric Authentication during the process. 
+Retrieve the encrypted data from the `SecKeyChain` with the secret as a parameter. IOS is in charge of decrypting the data with biometric Authentication during the process. 
 
 - Android
 
-Retrieve the shared preference encrypted data, then decrypt it with the secret as parameter by presenting it to the `biometricPrompt` manager.
+Retrieve the shared preference encrypted data, then decrypt it with the secret as a parameter by presenting it to the `biometricPrompt` manager.
 
 ## Changelog
 
