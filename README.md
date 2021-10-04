@@ -10,11 +10,6 @@ This library offers a simple contract to use the biometry across Android, iOS an
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-## Getting Started
-
-Install the latest version of BiometryService Nuger "Add Nuget Reference"
-A small sample is available as a playground.
-
 ## Features
 
 The biometryService Interface 'IBiometryService' Implement the following method :
@@ -28,13 +23,19 @@ As of now, this is the list of features available per platform.
 
 
 | Feature          | iOS | Android | UWP  |
-| ------------------ | ----- | --------- | ------ |
+| ---------------- | --- | ------- | ---- |
 | GetCapability    | x   | x       | x    |
 | ValidateIdentity | x   | x       | Mock |
 | Encrypt          | x   | x       | Mock |
 | Decrypt          | x   | x       | Mock |
 
-## Instantiation
+## Getting Started
+
+Install the latest version of BiometryService Nuget package "Add Nuget Reference".
+
+A small sample is available as a playground.
+
+### Instantiation
 
 #### iOS
 
@@ -42,13 +43,13 @@ An example of instantiation as follow with the fallback to the pin code with som
 
 ```
 var options = new BiometryOptions();
-    options.LocalizedReasonBodyText = "REASON THAT APP WANTS TO USE BIOMETRY :)";
-    options.LocalizedFallbackButtonText = "FALLBACK";
-    options.LocalizedCancelButtonText = "CANCEL";
+options.LocalizedReasonBodyText = "REASON THAT APP WANTS TO USE BIOMETRY";
+options.LocalizedFallbackButtonText = "FALLBACK";
+options.LocalizedCancelButtonText = "CANCEL";
 
 // use LAPolicy.DeviceOwnerAuthenticationWithBiometrics for biometrics only with no fallback to passcode/password
 // use LAPolicy.DeviceOwnerAuthentication for biometrics+watch with fallback to passcode/password
-    _biometryService = new BiometryService(options, async ct => "Biometrics_Confirm", LAPolicy.DeviceOwnerAuthentication);
+_biometryService = new BiometryService(options, async ct => "Biometrics_Confirm", LAPolicy.DeviceOwnerAuthentication);
 ```
 
 #### Android
@@ -70,6 +71,8 @@ _biometryService = new BiometryService(MainActivity.Instance,
                                 .Build()));
 ```
 
+## Methods
+
 ### GetGapabilites
 
 This method helps to check the hardware status on the device.
@@ -80,7 +83,7 @@ It will return a struct `BiometryCapabilities` with the detailled device configu
 #### iOS
 
 | Capability   | ValidateIdentity | Decrypt | Encrypt |
-| -------------- | ------------------ | --------- | --------- |
+| ------------ | ---------------- | ------- | ------- |
 | Face ID      | x                | x       | x       |
 | Touch ID     | x                | x       | x       |
 | Fallback PIN | x                | x       | x       |
@@ -89,7 +92,7 @@ It will return a struct `BiometryCapabilities` with the detailled device configu
 
 
 | Capability   | ValidateIdentity | Decrypt | Encrypt |
-| -------------- | ------------------ | --------- | --------- |
+| ------------ | ---------------- | ------- | ------- |
 | Face ID      | x                | None    | None    |
 | Touch ID     | x                | x       | x       |
 | Fallback PIN | x                | x       | x       |
