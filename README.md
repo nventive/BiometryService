@@ -62,11 +62,11 @@ An example of instantiation is as follow, with the fallback to the pin code with
 
 ```
 _biometryService = new BiometryService(MainActivity.Instance,
-								CoreDispatcher.Main,
+                                CoreDispatcher.Main,
                                 ct => Task.FromResult(new BiometricPrompt.PromptInfo.Builder()
-								.SetTitle("Biometrics SignIn")
-								.SetSubtitle("Biometrics Confirm")
-								.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin
+                                .SetTitle("Biometrics SignIn")
+                                .SetSubtitle("Biometrics Confirm")
+                                .SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin
                                 .SetNegativeButtonText("Cancel")
                                 .Build()));
 ```
