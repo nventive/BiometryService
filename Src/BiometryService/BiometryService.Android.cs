@@ -81,27 +81,24 @@ namespace BiometryService
 		/// <returns>A <see cref="BiometryResult" /> enum value.</returns>
 		public async Task<BiometryResult> ValidateIdentity(CancellationToken ct)
 		{
-			using (await _asyncLock.LockAsync(ct))
+			var response = await AuthenticateAndProcess(ct, CRYPTO_OBJECT_KEY_NAME);
+
+			var result = new BiometryResult();
+
+			if (response.AuthenticationType == 0) //BiometryAuthenticationResult.Granted
 			{
-				var response = await AuthenticateAndProcess(ct, CRYPTO_OBJECT_KEY_NAME);
-
-				var result = new BiometryResult();
-
-				if (response.AuthenticationType == 0) //BiometryAuthenticationResult.Granted
-				{
-					result.AuthenticationResult = BiometryAuthenticationResult.Granted;
-				}
-				else if (response.AuthenticationType == 1) //BiometryAuthenticationResult.Denied
-				{
-					result.AuthenticationResult = BiometryAuthenticationResult.Denied;
-				}
-				else if (response.AuthenticationType == 2) //BiometryAuthenticationResult.Cancelled
-				{
-					result.AuthenticationResult = BiometryAuthenticationResult.Cancelled;
-				}
-
-				return result;
+				result.AuthenticationResult = BiometryAuthenticationResult.Granted;
 			}
+			else if (response.AuthenticationType == 1) //BiometryAuthenticationResult.Denied
+			{
+				result.AuthenticationResult = BiometryAuthenticationResult.Denied;
+			}
+			else if (response.AuthenticationType == 2) //BiometryAuthenticationResult.Cancelled
+			{
+				result.AuthenticationResult = BiometryAuthenticationResult.Cancelled;
+			}
+
+			return result;
 		}
 
 		/// <summary>
@@ -123,21 +120,53 @@ namespace BiometryService
 
 			byte[] data = Base64.Decode(storedData, Base64Flags.NoWrap);
 
-			using (await _asyncLock.LockAsync(ct))
+			var iv = data.ToRangeArray(0, 16);
+			var buffer = data.ToRangeArray(16, int.MaxValue);
+
+			var crypto = BuildSymmetricCryptoObject(key, CIPHER_NAME, CipherMode.DecryptMode, iv);
+			var result = await AuthenticateAndProcess(ct, key, crypto) ?? throw new System.OperationCanceledException();
+			var decryptedData = result.CryptoObject.Cipher.DoFinal(buffer);
+
+			if (this.Log().IsEnabled(LogLevel.Information))
 			{
-				var iv = data.ToRangeArray(0, 16);
-				var buffer = data.ToRangeArray(16, int.MaxValue);
-
-				var crypto = BuildSymmetricCryptoObject(key, CIPHER_NAME, CipherMode.DecryptMode, iv);
-				var result = await AuthenticateAndProcess(ct, key, crypto) ?? throw new System.OperationCanceledException();
-				var decryptedData = result.CryptoObject.Cipher.DoFinal(buffer);
-
-				if (this.Log().IsEnabled(LogLevel.Information))
-				{
-					this.Log().Info($"Succcessfully decrypted the fingerprint for the key '{key}'.");
-				}
-				return Encoding.ASCII.GetString(decryptedData);
+				this.Log().Info($"Succcessfully decrypted the fingerprint for the key '{key}'.");
 			}
+
+			return Encoding.ASCII.GetString(decryptedData);
+		}
+
+		/// <summary>
+		///     Retrieve and decrypt data associated to the key.
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <param name="key">The key for the value.</param>
+		/// <param name="value">To be decrypt.</param>
+		/// <returns>A string</returns>
+		public async Task<string> Decrypt(CancellationToken ct, string key, string value)
+		{
+			if (this.Log().IsEnabled(LogLevel.Debug))
+			{
+				this.Log().Debug($"Decrypting the fingerprint for the key '{key}'.");
+			}
+
+			key.Validation().NotNullOrEmpty(nameof(key));
+			key.Validation().NotNullOrEmpty(nameof(value));
+
+			byte[] data = Base64.Decode(value, Base64Flags.NoWrap);
+
+			var iv = data.ToRangeArray(0, 16);
+			var buffer = data.ToRangeArray(16, int.MaxValue);
+
+			var crypto = BuildSymmetricCryptoObject(key, CIPHER_NAME, CipherMode.DecryptMode, iv);
+			var result = await AuthenticateAndProcess(ct, key, crypto) ?? throw new System.OperationCanceledException();
+			var decryptedData = result.CryptoObject.Cipher.DoFinal(buffer);
+
+			if (this.Log().IsEnabled(LogLevel.Information))
+			{
+				this.Log().Info($"Succcessfully decrypted the fingerprint for the key '{key}'.");
+			}
+
+			return Encoding.ASCII.GetString(decryptedData);
 		}
 
 		/// <summary>
@@ -157,26 +186,58 @@ namespace BiometryService
 			keyName.Validation().NotNullOrEmpty(nameof(keyName));
 			value.Validation().NotNull(nameof(value));
 
-			using (await _asyncLock.LockAsync(ct))
+
+			var crypto = BuildSymmetricCryptoObject(keyName, CIPHER_NAME, CipherMode.EncryptMode);
+			var result = await AuthenticateAndProcess(ct, keyName, crypto) ?? throw new System.OperationCanceledException();
+			var encryptedData = result.CryptoObject.Cipher.DoFinal(Encoding.ASCII.GetBytes(value));
+			var iv = result.CryptoObject.Cipher.GetIV();
+
+			var bytes = new byte[iv.Length + encryptedData.Length];
+			iv.CopyTo(bytes, 0);
+			encryptedData.CopyTo(bytes, iv.Length);
+
+			if (this.Log().IsEnabled(LogLevel.Information))
 			{
-				var crypto = BuildSymmetricCryptoObject(keyName, CIPHER_NAME, CipherMode.EncryptMode);
-				var result = await AuthenticateAndProcess(ct, keyName, crypto) ?? throw new System.OperationCanceledException();
-				var encryptedData = result.CryptoObject.Cipher.DoFinal(Encoding.ASCII.GetBytes(value));
-				var iv = result.CryptoObject.Cipher.GetIV();
-
-				var bytes = new byte[iv.Length + encryptedData.Length];
-				iv.CopyTo(bytes, 0);
-				encryptedData.CopyTo(bytes, iv.Length);
-
-				if (this.Log().IsEnabled(LogLevel.Information))
-				{
-					this.Log().Info($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
-				}
-
-				string encodedData = Base64.EncodeToString(bytes, Base64Flags.NoWrap);
-				var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
-				sharedpref.Edit().PutString(keyName, encodedData).Apply();
+				this.Log().Info($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
 			}
+
+			string encodedData = Base64.EncodeToString(bytes, Base64Flags.NoWrap);
+			var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
+			sharedpref.Edit().PutString(keyName, encodedData).Apply();
+		}
+
+		/// <summary>
+		///     Encrypt the value and store the key into the keytore.
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <param name="keyName">The key for the value.</param>
+		/// <param name="value">A string value to encrypt.</param>
+		/// <returns>A string</returns>
+		public async Task<string> EncryptAndReturn(CancellationToken ct, string keyName, string value)
+		{
+			if (this.Log().IsEnabled(LogLevel.Debug))
+			{
+				this.Log().Debug($"Encrypting the fingerprint for the key '{keyName}'.");
+			}
+
+			keyName.Validation().NotNullOrEmpty(nameof(keyName));
+			value.Validation().NotNull(nameof(value));
+
+			var crypto = BuildSymmetricCryptoObject(keyName, CIPHER_NAME, CipherMode.EncryptMode);
+			var result = await AuthenticateAndProcess(ct, keyName, crypto) ?? throw new System.OperationCanceledException();
+			var encryptedData = result.CryptoObject.Cipher.DoFinal(Encoding.ASCII.GetBytes(value));
+			var iv = result.CryptoObject.Cipher.GetIV();
+
+			var bytes = new byte[iv.Length + encryptedData.Length];
+			iv.CopyTo(bytes, 0);
+			encryptedData.CopyTo(bytes, iv.Length);
+
+			if (this.Log().IsEnabled(LogLevel.Information))
+			{
+				this.Log().Info($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
+			}
+
+			return Base64.EncodeToString(bytes, Base64Flags.NoWrap);
 		}
 
 		/// <summary>
@@ -269,7 +330,7 @@ namespace BiometryService
 
 			int result = 0;
 			if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
-				result = _biometricManager.CanAuthenticate(); 
+				result = _biometricManager.CanAuthenticate();
 			else
 				result = _biometricManager.CanAuthenticate(BiometricManager.Authenticators.BiometricStrong);
 
