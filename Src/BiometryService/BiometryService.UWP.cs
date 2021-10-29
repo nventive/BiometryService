@@ -225,6 +225,16 @@ namespace BiometryService
 		{
 			_keys[name] = Convert.ToBase64String(key);
 		}
+
+		public Task<string> EncryptAndReturn(CancellationToken ct, string key, string value)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task<string> Decrypt(CancellationToken ct, string key, string value)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
 #endif

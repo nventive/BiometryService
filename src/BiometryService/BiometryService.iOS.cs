@@ -189,6 +189,18 @@ namespace BiometryService
 		}
 
 		/// <summary>
+		///     Encrypt the string value into the keychain
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <param name="key">The key for the value.</param>
+		/// <param name="value">A string value to encrypt.</param>
+		/// <returns>A string</returns>
+		public async Task<string> EncryptAndReturn(CancellationToken ct, string key, string value)
+		{
+			throw new  InvalidOperationException("This method cannot be use with SecKeyChain records");
+		}
+
+		/// <summary>
 		///     Decodes the array of string data to a string value
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
@@ -221,6 +233,18 @@ namespace BiometryService
 				}
 				return null;
 			}
+		}
+
+		/// <summary>
+		///     Decodes the array of string data to a string value
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <param name="key">The key for the value.</param>
+		/// <returns>A string</returns>
+
+		public Task<string> Decrypt(CancellationToken ct, string key, string value)
+		{
+			throw new InvalidOperationException("This method cannot be use with SecKeyChain records");
 		}
 
 		private static BiometryAuthenticationResult GetAuthenticationResultFrom(NSError laError)

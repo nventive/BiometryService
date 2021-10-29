@@ -39,11 +39,29 @@ namespace BiometryService
 		Task Encrypt(CancellationToken ct, string key, string value);
 
 		/// <summary>
+		///     Encrypt the value and return the result.
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <param name="key">The name of the Key.</param>
+		/// <param name="value">The value to be encrypt.</param>
+		/// <returns>A string.</returns>
+		Task<string> EncryptAndReturn(CancellationToken ct, string key, string value);
+
+		/// <summary>
 		///     Retrieve and decrypt data associated to the key.
 		/// </summary>
 		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
 		/// <param name="key">The name of the Key.</param>
 		/// <returns>A string</returns>
 		Task<string> Decrypt(CancellationToken ct, string key);
+
+		/// <summary>
+		///     Retrieve and decrypt data associated to the key.
+		/// </summary>
+		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
+		/// <param name="key">The name of the Key.</param>
+		/// <param name="value">The value to be decrypt.</param>
+		/// <returns>A string</returns>
+		Task<string> Decrypt(CancellationToken ct, string key, string value);
 	}
 }
