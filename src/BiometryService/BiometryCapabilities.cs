@@ -32,7 +32,7 @@ namespace BiometryService
 		/// </summary>
 		public bool IsSupported => BiometryType != BiometryType.None;
 
-		internal BiometryCapabilities(BiometryType biometryType, bool biometryIsEnabled, bool passcodeIsSet)
+		public BiometryCapabilities(BiometryType biometryType, bool biometryIsEnabled, bool passcodeIsSet)
 		{
 			BiometryType = biometryType;
 			IsEnabled = biometryIsEnabled;
