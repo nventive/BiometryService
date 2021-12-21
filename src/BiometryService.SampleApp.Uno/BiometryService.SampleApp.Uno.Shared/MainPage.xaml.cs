@@ -50,7 +50,7 @@ namespace BiometryService.SampleApp.Uno
 			if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
             {
                 _biometryService = new BiometryService(MainActivity.Instance,
-                                                   CoreDispatcher.Main,
+                                                   Dispatcher,
                                                    ct => Task.FromResult(new BiometricPrompt.PromptInfo.Builder()
                                                     .SetTitle("Biometrics SignIn")
                                                     .SetSubtitle("Biometrics Confirm")
@@ -62,7 +62,7 @@ namespace BiometryService.SampleApp.Uno
             else
             {
 			    _biometryService = new BiometryService(MainActivity.Instance,
-												   CoreDispatcher.Main,
+												   Dispatcher,
                                                    ct => Task.FromResult(new BiometricPrompt.PromptInfo.Builder()
 												    .SetTitle("Biometrics SignIn")
 												    .SetSubtitle("Biometrics Confirm")
