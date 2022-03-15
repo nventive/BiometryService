@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
-
+[#52] Change target Uno.UI version to 4.0.7
 ### Deprecated
 
 ### Removed
