@@ -11,7 +11,7 @@ resources:
 
 variables:
 - name: NUGET_VERSION
-  value: 5.8.1
+  value: 6.1.0
 - name: VSTEST_PLATFORM_VERSION
   value: 16.8.6
 - name: ArtifactName
@@ -30,6 +30,8 @@ variables:
   value: nventive.internal.p12 # This is the certificate from the entreprise account used to sign internal builds.
 - name:  InternalKeystore
   value: com.nventive.internal.applicationtemplate.jks
+- name: windowsPoolName
+  value: 'windows 1809'
 
 stages:
 - stage: Build
@@ -44,7 +46,7 @@ stages:
           GeneratePackageOnBuild: true
 
     pool:
-      name: 'windows 1809'
+      name: $(windowsPoolName)
 
     variables:
     - name: PackageOutputPath # Path where nuget packages will be copied to.
@@ -72,7 +74,7 @@ stages:
   - job: Publish_NuGet_External
 
     pool:
-      name: Container
+      name: $(windowsPoolName)
 
     workspace:
       clean: all # Cleanup the workspace before starting
