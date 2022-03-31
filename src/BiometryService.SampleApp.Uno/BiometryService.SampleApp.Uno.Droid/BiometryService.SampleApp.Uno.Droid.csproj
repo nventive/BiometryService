@@ -61,7 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Reactive.Annex.Uno">
-      <Version>0.3.0-feature.uno-ui-4.24</Version>
+      <Version>0.5.0-dev.29</Version>
     </PackageReference>
     <PackageReference Include="Uno.UI" Version="4.0.7" />
     <PackageReference Include="Uno.UI.RemoteControl" Version="4.0.7" Condition="'$(Configuration)'=='Debug'" />
@@ -69,7 +69,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="1.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Filter" Version="1.1.1" />
     <PackageReference Include="Xamarin.AndroidX.Biometric">
-      <Version>1.1.0.1</Version>
+      <Version>1.1.0.4</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -103,7 +103,6 @@
   <Import Project="..\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems" Label="Shared" Condition="Exists('..\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems')" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- This will force the generation of the APK when not building inside visual studio -->
-  <Target Name="GenerateBuild" DependsOnTargets="SignAndroidPackage" AfterTargets="Build" Condition="'$(BuildingInsideVisualStudio)'==''" />
   <Target Name="Issue3897Workaround" Condition=" '$(ManagedDesignTimeBuild)' == 'True' " AfterTargets="_RemoveLegacyDesigner">
     <!-- See https://github.com/unoplatform/uno/issues/3897 and https://github.com/xamarin/xamarin-android/issues/5069 for more details -->
     <ItemGroup>

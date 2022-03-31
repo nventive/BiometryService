@@ -11,9 +11,9 @@
       <Version>6.2.9</Version>
     </PackageReference>
     <PackageReference Include="Reactive.Annex">
-      <Version>0.3.0-feature.uno-ui-4.24</Version>
+      <Version>0.5.0-dev.29</Version>
     </PackageReference>
-	  <PackageReference Include="Uno.Core" Version="4.0.1" />
+    <PackageReference Include="Uno.Core" Version="4.0.1" />
     <PackageReference Include="Uno.UI" Version="4.0.7" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="1.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Filter" Version="1.1.1" />
@@ -28,8 +28,8 @@
     <AssemblyName>BiometryService.SampleApp.Uno</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.18362.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.18362.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion>10.0.19041.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
