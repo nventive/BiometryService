@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,13 +10,13 @@ namespace BiometryService
 	public class UnsupportedBiometryService : IBiometryService
 	{
 		/// <inheritdoc />
-		public Task<BiometryCapabilities> GetCapabilities()
+		public Task<BiometryCapabilities> GetCapabilities(CancellationToken ct)
 		{
 			return Task.FromResult(new BiometryCapabilities(BiometryType.None, false, false));
 		}
 
 		/// <inheritdoc />
-		public Task<BiometryResult> ValidateIdentity(CancellationToken ct)
+		public Task ScanBiometry(CancellationToken ct)
 		{
 			throw new NotSupportedException($"{nameof(UnsupportedBiometryService)} doesn't support identity validation.");
 		}
@@ -45,6 +43,12 @@ namespace BiometryService
 		public Task<string> EncryptAndReturn(CancellationToken ct, string key, string value)
 		{
 			throw new NotSupportedException($"{nameof(UnsupportedBiometryService)} doesn't support encrypting.");
-		}		
+		}
+
+		/// <inheritdoc />
+		public void Remove(string key)
+		{
+			throw new NotSupportedException($"{nameof(UnsupportedBiometryService)} doesn't support removing.");
+		}
 	}
 }
