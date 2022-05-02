@@ -88,6 +88,16 @@ namespace BiometryService.SampleApp.Uno
 												    .SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin
                                                     .SetNegativeButtonText("Cancel")
                                                     .Build()));
+			else
+			{
+				promptBuilder = () => new BiometricPrompt.PromptInfo.Builder()
+					.SetTitle("Biometrics SignIn")
+					.SetSubtitle("Biometrics Confirm")
+					// BiometricManager.Authenticators.DeviceCredential == Fallback on secure pin
+					.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong)
+					// Do not set NegativeButtonText if BiometricManager.Authenticators.DeviceCredential is allowed with BiometricManager.Authenticators.BiometricStrong
+					.SetNegativeButtonText("Cancel")
+					.Build();
 			}
 
 			_biometryService = new BiometryService(
@@ -98,6 +108,8 @@ namespace BiometryService.SampleApp.Uno
 #endif
 #if WINDOWS_UWP || WINDOWS
             _biometryService = new BiometryService(true, true, TaskPoolScheduler.Default.ToBackgroundScheduler());
+#if WINDOWS_UWP
+			_biometryService = new BiometryService(App.Instance.LoggerFactory);
 #endif
 
 			_ = LoadCapabilities(_cancellationToken);
