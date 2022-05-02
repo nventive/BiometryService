@@ -1,56 +1,52 @@
-#if __IOS__
+﻿#if __IOS__
 using System;
-using System.IO;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Foundation;
 using LocalAuthentication;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Security;
-using Uno;
-using Uno.Extensions;
-using Uno.Logging;
 
 namespace BiometryService
 {
 	/// <summary>
-	///     Implementation of the <see cref="IBiometryService" /> for iOS.
+	/// Implementation of the <see cref="IBiometryService" /> for iOS.
 	/// </summary>
 	public class BiometryService : IBiometryService
 	{
-		private FuncAsync<string> _description;
+		private readonly LAContext _laContext;
 		private readonly LAPolicy _localAuthenticationPolicy;
-		private readonly BiometryOptions _options;
 		private readonly bool _fallbackOnPasscodeAuthentication;
-
+		private readonly ILogger _logger;
+		private readonly string _description;
 
 		/// <summary>
-		///     Initializes a new instance of the <see cref="BiometryService" /> class.
+		/// Initializes a new instance of the <see cref="BiometryService" /> class.
 		/// </summary>
-		/// <param name="options">The <see cref="BiometryOptions" /> instance to use.</param>
-		/// <param name="description">An enum of LAPolicy.</param>
+		/// <param name="laContext">The <see cref="LAContext" /> to use.</param>
+		/// <param name="description"></param>
 		/// <param name="localAuthenticationPolicy">The <see cref="LAPolicy" /> to use.</param>
-		public BiometryService(BiometryOptions options, FuncAsync<string> description, LAPolicy localAuthenticationPolicy = LAPolicy.DeviceOwnerAuthentication)
+		/// <param name="loggerFactory"></param>
+		public BiometryService(
+			LAContext laContext,
+			string description,
+			LAPolicy localAuthenticationPolicy = LAPolicy.DeviceOwnerAuthentication,
+			ILoggerFactory loggerFactory = null)
 		{
-			_options = options ?? new BiometryOptions();
+			_logger = loggerFactory?.CreateLogger<IBiometryService>() ?? NullLogger<IBiometryService>.Instance;
 
-			_description = description;
-
+			_laContext = laContext;
 			_localAuthenticationPolicy = localAuthenticationPolicy;
+			_description = description;
 		}
 
-		/// <summary>
-		///     Gets the device's current biometric capabilities.
-		/// </summary>
-		/// <returns>A <see cref="BiometryCapabilities" /> struct instance.</returns>
-		public Task<BiometryCapabilities> GetCapabilities()
+		/// <inheritdoc/>
+		public Task<BiometryCapabilities> GetCapabilities(CancellationToken ct)
 		{
-			var context = new LAContext();
-			context.CanEvaluatePolicy(_localAuthenticationPolicy, out var laError);
+			_laContext.CanEvaluatePolicy(_localAuthenticationPolicy, out var laError);
 
-			var biometryType = GetBiometryTypeFrom(context.BiometryType);
+			var biometryType = GetBiometryTypeFrom(_laContext.BiometryType);
 			var passcodeIsSet = true;
 			var biometryIsEnabled = true;
 
@@ -81,26 +77,14 @@ namespace BiometryService
 					biometryIsEnabled = false;
 				}
 			}
-			return Task.Run(() =>
-			{
-				return new BiometryCapabilities(biometryType, biometryIsEnabled, passcodeIsSet);
-			});
+			return Task.FromResult(new BiometryCapabilities(biometryType, biometryIsEnabled, passcodeIsSet));
 		}
 
-		/// <summary>
-		///     Authenticate the user using biometrics.
-		/// </summary>
-		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <returns>A <see cref="BiometryResult" /> enum value.</returns>
-		public async Task<BiometryResult> ValidateIdentity(CancellationToken ct)
+		/// <inheritdoc/>
+		public async Task ScanBiometry(CancellationToken ct)
 		{
-			var context = new LAContext();
-			context.LocalizedReason = _options.LocalizedReasonBodyText;
-			context.LocalizedFallbackTitle = _options.LocalizedFallbackButtonText;
-			context.LocalizedCancelTitle = _options.LocalizedCancelButtonText;
-
-			var capabilities = await GetCapabilities();
-			if (!capabilities.PasscodeIsSet)
+			var capabilities = await GetCapabilities(ct);
+			if (!capabilities.IsPasscodeSet)
 			{
 				throw new Exception(
 					"No passcode/password is set on the device. To avoid catching this exception: call GetCapabilities() and inspect if the passcode/password is set or not before calling this method.");
@@ -118,59 +102,42 @@ namespace BiometryService
 					"Biometrics not enrolled (no finger xor face was added by the user). To avoid catching this exception: call GetCapabilities() and inspect if biometrics is enabled before calling this method.");
 			}
 
-			if (context.BiometryType == LABiometryType.FaceId)
+			if (_laContext.BiometryType == LABiometryType.FaceId)
 			{
 				// Verify that info.plist contains NSFaceIDUsageDescription key/value otherwise the app will crash
 				var faceIDUsageDescription = ((NSString)NSBundle.MainBundle.InfoDictionary["NSFaceIDUsageDescription"])?.ToString();
 				if (string.IsNullOrEmpty(faceIDUsageDescription))
 				{
-					throw new BiometryException(0,"Please add a NSFaceIDUsageDescription key in the `Info.plist` file.");
+					throw new BiometryException(0, "Please add a NSFaceIDUsageDescription key in the `Info.plist` file.");
 				}
 			}
 
-			var (_, laError) = await context.EvaluatePolicyAsync(_localAuthenticationPolicy, context.LocalizedReason);
-			var evaluatePolicyResult = GetAuthenticationResultFrom(laError);
+			var (_, laError) = await _laContext.EvaluatePolicyAsync(_localAuthenticationPolicy, _laContext.LocalizedReason);
 
-			var result = new BiometryResult();
-			switch (evaluatePolicyResult)
+			if (laError != null)
 			{
-				case BiometryAuthenticationResult.Granted:
-					result.AuthenticationResult = BiometryAuthenticationResult.Granted; 
-					break;
-				case BiometryAuthenticationResult.Cancelled:
-					result.AuthenticationResult = BiometryAuthenticationResult.Cancelled;
-					break;
-				case BiometryAuthenticationResult.Denied:
-					result.AuthenticationResult = BiometryAuthenticationResult.Denied;
-					break;
+				throw new BiometryException(BiometryExceptionReason.Failed, "TODO");
 			}
-			return result;
 		}
 
-		/// <summary>
-		///     Encrypt the string value into the keychain
-		/// </summary>
-		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="key">The key for the value.</param>
-		/// <param name="value">A string value to encrypt.</param>
-		/// <returns>A string</returns>
+		/// <inheritdoc/>
 		public async Task Encrypt(CancellationToken ct, string key, string value)
 		{
-			var capabilities = await GetCapabilities();
+			var capabilities = await GetCapabilities(ct);
 			if (capabilities.IsEnabled)
 			{
-				if (this.Log().IsEnabled(LogLevel.Debug))
+				if (_logger.IsEnabled(LogLevel.Debug))
 				{
-					this.Log().Debug($"Encrypting the fingerprint for the key '{key}'.");
+					_logger.LogDebug($"Encrypting the fingerprint for the key '{key}'.");
 				}
 
 				try
 				{
 					SaveKey(key, value);
 
-					if (this.Log().IsEnabled(LogLevel.Information))
+					if (_logger.IsEnabled(LogLevel.Information))
 					{
-						this.Log().Info($"The fingerprint is successfully encrypted for the key '{key}'.");
+						_logger.LogInformation($"The fingerprint is successfully encrypted for the key '{key}'.");
 					}
 
 				}
@@ -181,44 +148,27 @@ namespace BiometryService
 			}
 			else
 			{
-				if (this.Log().IsEnabled(LogLevel.Debug))
+				if (_logger.IsEnabled(LogLevel.Debug))
 				{
-					this.Log().Debug($"Can not encrypt '{key}'.");
+					_logger.LogDebug($"Can not encrypt '{key}'.");
 				}
 			}
 		}
 
-		/// <summary>
-		///     Encrypt the string value into the keychain
-		/// </summary>
-		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="key">The key for the value.</param>
-		/// <param name="value">A string value to encrypt.</param>
-		/// <returns>A string</returns>
-		public async Task<string> EncryptAndReturn(CancellationToken ct, string key, string value)
-		{
-			throw new  InvalidOperationException("This method cannot be use with SecKeyChain records");
-		}
-
-		/// <summary>
-		///     Decodes the array of string data to a string value
-		/// </summary>
-		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="key">The key for the value.</param>
-		/// <returns>A string</returns>
+		/// <inheritdoc/>
 		public async Task<string> Decrypt(CancellationToken ct, string key)
 		{
-			var capabilities = await GetCapabilities();
+			var capabilities = await GetCapabilities(ct);
 			if (capabilities.IsEnabled)
 			{
-				if (this.Log().IsEnabled(LogLevel.Debug))
+				if (_logger.IsEnabled(LogLevel.Debug))
 				{
-					this.Log().Debug($"Decrypting the fingerprint for the key '{key}'.");
+					_logger.LogDebug($"Decrypting the fingerprint for the key '{key}'.");
 				}
 
 				try
 				{
-					return RetrieveKey(key, await _description(ct));
+					return RetrieveKey(key, _description);
 				}
 				catch (SecurityException ex)
 				{
@@ -227,90 +177,96 @@ namespace BiometryService
 			}
 			else
 			{
-				if (this.Log().IsEnabled(LogLevel.Debug))
+				if (_logger.IsEnabled(LogLevel.Debug))
 				{
-					this.Log().Debug($"Can not decrypt '{key}'.");
+					_logger.LogDebug($"Can not decrypt '{key}'.");
 				}
 				return null;
 			}
 		}
 
-		/// <summary>
-		///     Decodes the array of string data to a string value
-		/// </summary>
-		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="key">The key for the value.</param>
-		/// <returns>A string</returns>
-
-		public Task<string> Decrypt(CancellationToken ct, string key, string value)
+		/// <inheritdoc/>
+		public void Remove(string key)
 		{
-			throw new InvalidOperationException("This method cannot be use with SecKeyChain records");
-		}
-
-		private static BiometryAuthenticationResult GetAuthenticationResultFrom(NSError laError)
-		{
-			// Online docs, but no error code values: https://developer.apple.com/documentation/localauthentication/laerror?language=objc
-			// Source code docs found locally starting in dir:
-			// /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/LocalAuthentication.framework/Headers/LAError.h
-			// /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/LocalAuthentication.framework/Headers/LAPublicDefines.h
-			// Double check for your platform just to be sure! /Applications/Xcode.app/Contents/Developer/Platforms/{X}.platform/...
-
-			if (laError == null)
+			var record = new SecRecord(SecKind.GenericPassword)
 			{
-				return BiometryAuthenticationResult.Granted;
-			}
+				Service = key.ToLowerInvariant(),
+				UseOperationPrompt = _description
+			};
 
-			switch (laError.Code)
+			var result = SecKeyChain.Remove(record);
+
+			if (result != SecStatusCode.Success)
 			{
-				case 0:
-					return BiometryAuthenticationResult.Granted;
-				case -1:
-					// user failed auth; this case happens after they failed multiple attempts and also failed fallback if that's an option
-					return BiometryAuthenticationResult.Denied;
-				case -2:
-					// user cancelled
-					return BiometryAuthenticationResult.Cancelled;
-				case -3:
-					// user attempted to fallback to passcode/password, but that's not an option
-					// only applies to LAPolicy.DeviceOwnerAuthenticationWithBiometrics
-					return BiometryAuthenticationResult.Denied;
-				case -4:
-					// system cancelled
-					return BiometryAuthenticationResult.Cancelled;
-				case -5:
-					// passcode/password not set
-					// this case should not happen because callers of this private method should pre-check for this
-					return BiometryAuthenticationResult.Denied;
-				case -6:
-					// biometrics not available
-					// this case should not happen because callers of this private method should pre-check for this
-					return BiometryAuthenticationResult.Denied;
-				case -7:
-					// biometrics not enrolled
-					// this case should not happen because callers of this private method should pre-check for this
-					return BiometryAuthenticationResult.Denied;
-				case -8:
-					// user failed too many attempts for biometry and is now locked out from using biometry in the future until passcode/password is provided
-					// only applies to LAPolicy.DeviceOwnerAuthenticationWithBiometrics
-					return BiometryAuthenticationResult.Denied;
-				case -9:
-					// app cancelled
-					return BiometryAuthenticationResult.Cancelled;
-				case -10:
-					// invalidated LAContext; this case can happen when LAContext.Invalidate() was called
-					return BiometryAuthenticationResult.Denied;
-				case -11:
-					// no paired Apple watch is available
-					// only applies when using LAPolicy.DeviceOwnerAuthenticationWithWatch
-					return BiometryAuthenticationResult.Denied;
-				case -1004:
-					// no native dialog was shown because LAContext.InteractionNotAllowed is `true`
-					return BiometryAuthenticationResult.Denied;
-				default:
-					// unknown case not documented by Apple, just return denied instead of throwing an exception to prevent breaking the future
-					return BiometryAuthenticationResult.Denied;
+				throw new BiometryException(BiometryExceptionReason.Failed, "TODO");
 			}
 		}
+
+		// Replace
+		//private static BiometryAuthenticationResult GetAuthenticationResultFrom(NSError laError)
+		//{
+		//    // Online docs, but no error code values: https://developer.apple.com/documentation/localauthentication/laerror?language=objc
+		//    // Source code docs found locally starting in dir:
+		//    // /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/LocalAuthentication.framework/Headers/LAError.h
+		//    // /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/LocalAuthentication.framework/Headers/LAPublicDefines.h
+		//    // Double check for your platform just to be sure! /Applications/Xcode.app/Contents/Developer/Platforms/{X}.platform/...
+
+		//    if (laError == null)
+		//    {
+		//        return BiometryAuthenticationResult.Granted;
+		//    }
+
+		//    switch (laError.Code)
+		//    {
+		//        case 0:
+		//            return BiometryAuthenticationResult.Granted;
+		//        case -1:
+		//            // user failed auth; this case happens after they failed multiple attempts and also failed fallback if that's an option
+		//            return BiometryAuthenticationResult.Denied;
+		//        case -2:
+		//            // user cancelled
+		//            return BiometryAuthenticationResult.Cancelled;
+		//        case -3:
+		//            // user attempted to fallback to passcode/password, but that's not an option
+		//            // only applies to LAPolicy.DeviceOwnerAuthenticationWithBiometrics
+		//            return BiometryAuthenticationResult.Denied;
+		//        case -4:
+		//            // system cancelled
+		//            return BiometryAuthenticationResult.Cancelled;
+		//        case -5:
+		//            // passcode/password not set
+		//            // this case should not happen because callers of this private method should pre-check for this
+		//            return BiometryAuthenticationResult.Denied;
+		//        case -6:
+		//            // biometrics not available
+		//            // this case should not happen because callers of this private method should pre-check for this
+		//            return BiometryAuthenticationResult.Denied;
+		//        case -7:
+		//            // biometrics not enrolled
+		//            // this case should not happen because callers of this private method should pre-check for this
+		//            return BiometryAuthenticationResult.Denied;
+		//        case -8:
+		//            // user failed too many attempts for biometry and is now locked out from using biometry in the future until passcode/password is provided
+		//            // only applies to LAPolicy.DeviceOwnerAuthenticationWithBiometrics
+		//            return BiometryAuthenticationResult.Denied;
+		//        case -9:
+		//            // app cancelled
+		//            return BiometryAuthenticationResult.Cancelled;
+		//        case -10:
+		//            // invalidated LAContext; this case can happen when LAContext.Invalidate() was called
+		//            return BiometryAuthenticationResult.Denied;
+		//        case -11:
+		//            // no paired Apple watch is available
+		//            // only applies when using LAPolicy.DeviceOwnerAuthenticationWithWatch
+		//            return BiometryAuthenticationResult.Denied;
+		//        case -1004:
+		//            // no native dialog was shown because LAContext.InteractionNotAllowed is `true`
+		//            return BiometryAuthenticationResult.Denied;
+		//        default:
+		//            // unknown case not documented by Apple, just return denied instead of throwing an exception to prevent breaking the future
+		//            return BiometryAuthenticationResult.Denied;
+		//    }
+		//}
 
 		private static BiometryType GetBiometryTypeFrom(LABiometryType biometryType)
 		{
@@ -330,9 +286,9 @@ namespace BiometryService
 
 		private void SaveKey(string keyName, string value)
 		{
-			if (this.Log().IsEnabled(LogLevel.Debug))
+			if (_logger.IsEnabled(LogLevel.Debug))
 			{
-				this.Log().Debug($"Saving the key (key name: '{keyName}').");
+				_logger.LogDebug($"Saving the key (key name: '{keyName}').");
 			}
 
 			var record = new SecRecord(SecKind.GenericPassword)
@@ -358,9 +314,9 @@ namespace BiometryService
 					throw new SecurityException(result);
 				}
 
-				if (this.Log().IsEnabled(LogLevel.Information))
+				if (_logger.IsEnabled(LogLevel.Information))
 				{
-					this.Log().Info($"Successfully saved the key (key name: '{keyName}').");
+					_logger.LogInformation($"Successfully saved the key (key name: '{keyName}').");
 				}
 			}
 			else
@@ -371,9 +327,9 @@ namespace BiometryService
 
 		private string RetrieveKey(string keyName, string prompt)
 		{
-			if (this.Log().IsEnabled(LogLevel.Debug))
+			if (_logger.IsEnabled(LogLevel.Debug))
 			{
-				this.Log().Debug($"Retrieving the key pair (key name: '{keyName}', prompt: '{prompt}').");
+				_logger.LogDebug($"Retrieving the key pair (key name: '{keyName}', prompt: '{prompt}').");
 			}
 
 			var record = new SecRecord(SecKind.GenericPassword)
@@ -388,17 +344,17 @@ namespace BiometryService
 			{
 				case SecStatusCode.Success:
 
-					if (this.Log().IsEnabled(LogLevel.Information))
+					if (_logger.IsEnabled(LogLevel.Information))
 					{
-						this.Log().Info($"Successfully retrieved the key pair (key name: '{keyName}', prompt: '{prompt}').");
+						_logger.LogInformation($"Successfully retrieved the key pair (key name: '{keyName}', prompt: '{prompt}').");
 					}
 
 					return key.Generic.ToString();
 				case SecStatusCode.AuthFailed:
 
-					if (this.Log().IsEnabled(LogLevel.Information))
+					if (_logger.IsEnabled(LogLevel.Information))
 					{
-						this.Log().Info($"Could not retrieve the key due to a failed authentication (key name: '{keyName}', prompt: '{prompt}').");
+						_logger.LogInformation($"Could not retrieve the key due to a failed authentication (key name: '{keyName}', prompt: '{prompt}').");
 					}
 
 					return null;
