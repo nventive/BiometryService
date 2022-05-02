@@ -1,7 +1,6 @@
-﻿<Application
-    x:Class="BiometryService.SampleApp.Uno.App"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:BiometryService.SampleApp.Uno">
+﻿<Application x:Class="BiometryService.SampleApp.Uno.App"
+			 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:local="using:BiometryService.SampleApp.Uno">
 
 </Application>
