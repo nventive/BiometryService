@@ -27,6 +27,7 @@ using Dispatcher = Microsoft.UI.Dispatching.DispatcherQueue;
 using Windows.UI.Core;
 using Dispatcher = Windows.UI.Core.CoreDispatcher;
 #endif
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BiometryService
 {
@@ -46,8 +47,6 @@ namespace BiometryService
 		private readonly Context _applicationContext;
 		private readonly ILogger _logger;
 
-		private readonly Dispatcher _dispatcher;
-		private readonly AsyncLock _asyncLock = new AsyncLock();
 		private TaskCompletionSource<BiometricPrompt.AuthenticationResult> _authenticationCompletionSource;
 
 		/// <summary>
@@ -58,8 +57,8 @@ namespace BiometryService
 		/// <param name="loggerFactory"></param>
 		public BiometryService(
 			FragmentActivity fragmentActivity,
-			Dispatcher dispatcher,
-			FuncAsync<BiometricPrompt.PromptInfo> promptInfoBuilder)
+			Func<BiometricPrompt.PromptInfo> promptInfoBuilder,
+			ILoggerFactory loggerFactory = null)
 		{
 			_logger = loggerFactory?.CreateLogger<IBiometryService>() ?? NullLogger<IBiometryService>.Instance;
 
@@ -255,13 +254,9 @@ namespace BiometryService
 
 				// Prepare and show UI
 				var prompt = await _promptInfoBuilder(ct);
-#if WINUI
-				_dispatcher.TryEnqueue(DispatcherQueuePriority.High, () =>
-#else
 				await _dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
-#endif
-                {
-                    try
+				{
+					try
 					{
 						if (crypto == null)
 						{
