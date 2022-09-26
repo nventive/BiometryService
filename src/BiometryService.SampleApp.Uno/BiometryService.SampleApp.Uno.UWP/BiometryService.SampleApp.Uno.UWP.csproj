@@ -130,9 +130,9 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
-    <ProjectReference Include="..\..\BiometryService\BiometryService.csproj">
+    <ProjectReference Include="..\..\BiometryService.Uno\BiometryService.Uno.csproj">
       <Project>{38d70859-8ca3-4e16-b696-c5fb404b3d82}</Project>
-      <Name>BiometryService</Name>
+      <Name>BiometryService.Uno</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

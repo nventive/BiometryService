@@ -8,6 +8,16 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+#if WINUI
+using Microsoft.UI.Xaml;
+using LaunchActivatedEventArgs = Microsoft.UI.Xaml.LaunchActivatedEventArgs;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+#else
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -15,6 +25,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+#endif
 
 namespace BiometryService.SampleApp.Uno
 {
@@ -32,7 +43,9 @@ namespace BiometryService.SampleApp.Uno
 			ConfigureFilters(global::Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory);
 
 			this.InitializeComponent();
+#if !WINUI
 			this.Suspending += OnSuspending;
+#endif
 		}
 
 		/// <summary>
@@ -49,9 +62,11 @@ namespace BiometryService.SampleApp.Uno
 			}
 #endif
 
-#if NET5_0 && WINDOWS
+#if NET5_0_OR_GREATER && WINDOWS
 			var window = new Window();
 			window.Activate();
+#elif WINUI
+			var window = Microsoft.UI.Xaml.Window.Current;
 #else
 			var window = Windows.UI.Xaml.Window.Current;
 #endif
@@ -67,16 +82,18 @@ namespace BiometryService.SampleApp.Uno
 
 				rootFrame.NavigationFailed += OnNavigationFailed;
 
+#if !WINUI
 				if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
 				{
 					//TODO: Load state from previously suspended application
 				}
+#endif
 
 				// Place the frame in the current Window
 				window.Content = rootFrame;
 			}
 
-#if !(NET5_0 && WINDOWS)
+#if !(NET5_0_OR_GREATER && WINDOWS || WINUI)
 			if (e.PrelaunchActivated == false)
 #endif
 			{
