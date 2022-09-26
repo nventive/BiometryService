@@ -1,17 +1,21 @@
 ﻿steps:
-## Install .netcore runtime required by GitVersion@5
-- task: UseDotNet@2
+- task: GitVersion/setup@0
   inputs:
-    packageType: 'runtime'
-    version: '2.2.x'
-    installationPath: '$(Agent.ToolsDirectory)/dotnet'
-
-- task: GitVersion@5
+    versionSpec: '5.10.1'
+  displayName: 'Install GitVersion'
+  
+- task: GitVersion/execute@0
   inputs:
-    runtime: 'core'
     useConfigFile: true
-    configFilePath: build/gitversion.yml
+    configFilePath: $(Build.SourcesDirectory)/build/gitversion.yml
   displayName: 'Calculate version'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Install dotnet 6 workloads'
+  inputs:
+    command: 'custom'
+    custom: 'workload'
+    arguments: 'install android ios macos maccatalyst'
 
 - task: MSBuild@1
   displayName: 'Restore solution packages'

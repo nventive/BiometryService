@@ -1,4 +1,4 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras/2.0.54">
+﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.44">
 
   <PropertyGroup>
     <!--
@@ -10,7 +10,7 @@
     <Authors>nventive</Authors>
     <Company>nventive</Company>
     <RootNamespace>BiometryService</RootNamespace>
-    <PackageId>BiometryService</PackageId>
+    <PackageId>BiometryService.Uno</PackageId>
     <Description>BiometryService</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -22,6 +22,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
+    <PackageReference Include="Uno.Core" Version="4.0.1" />
+    <PackageReference Include="Uno.UI" Version="4.0.7" />
+    <PackageReference Include="Uno.SourceGenerationTasks" Version="4.1.0-dev.9" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='monoandroid11.0' or '$(TargetFramework)'=='monoandroid12.0'">
@@ -31,4 +34,5 @@
     <PackageReference Include="Xamarin.AndroidX.RecyclerView " Version="1.2.1.1" />
   </ItemGroup>
 
+  <Import Project="..\Shared\Shared.projitems" Label="Shared" />
 </Project>

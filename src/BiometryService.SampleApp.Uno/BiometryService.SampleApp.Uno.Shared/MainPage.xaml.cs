@@ -1,8 +1,14 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+#if WINUI
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Dispatching;
+#else
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Core;
+#endif
 using System;
 using Microsoft.Extensions.Logging;
 #if __IOS__
@@ -14,7 +20,7 @@ using System.Reactive.Concurrency;
 using BiometryService.SampleApp.Uno.Droid;
 using AndroidX.Biometric;
 #endif
-#if WINDOWS_UWP
+#if WINDOWS_UWP || WINDOWS
 using System.Reactive.Concurrency;
 #endif
 
@@ -53,25 +59,35 @@ namespace BiometryService.SampleApp.Uno
 #if __ANDROID__
 			Func<BiometricPrompt.PromptInfo> promptBuilder;
 			if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
-			{
-				promptBuilder = () => new BiometricPrompt.PromptInfo.Builder()
-					.SetTitle("Biometrics SignIn")
-					.SetSubtitle("Biometrics Confirm")
-					//.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricWeak | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin WARNING cannot Encrypt data with this settings
-					.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong) // used for Encrypt decrypt feature for device bellow Android 11
-					.SetNegativeButtonText("Cancel")
-					.Build();
+            {
+                _biometryService = new BiometryService(MainActivity.Instance,
+#if WINUI
+                                                   DispatcherQueue,
+#else
+                                                   Dispatcher,
+#endif
+                                                   ct => Task.FromResult(new BiometricPrompt.PromptInfo.Builder()
+                                                    .SetTitle("Biometrics SignIn")
+                                                    .SetSubtitle("Biometrics Confirm")
+                                                    //.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricWeak | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin WARNING cannot Encrypt data with this settings
+                                                    .SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong) // used for Encrypt decrypt feature for device bellow Android 11
+                                                    .SetNegativeButtonText("Cancel")
+                                                    .Build())); 
 			}
-			else
-			{
-				promptBuilder = () => new BiometricPrompt.PromptInfo.Builder()
-					.SetTitle("Biometrics SignIn")
-					.SetSubtitle("Biometrics Confirm")
-					// BiometricManager.Authenticators.DeviceCredential == Fallback on secure pin
-					.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong)
-					// Do not set NegativeButtonText if BiometricManager.Authenticators.DeviceCredential is allowed with BiometricManager.Authenticators.BiometricStrong
-					.SetNegativeButtonText("Cancel")
-					.Build();
+            else
+            {
+			    _biometryService = new BiometryService(MainActivity.Instance,
+#if WINUI
+                                                   DispatcherQueue,
+#else
+                                                   Dispatcher,
+#endif
+                                                   ct => Task.FromResult(new BiometricPrompt.PromptInfo.Builder()
+												    .SetTitle("Biometrics SignIn")
+												    .SetSubtitle("Biometrics Confirm")
+												    .SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin
+                                                    .SetNegativeButtonText("Cancel")
+                                                    .Build()));
 			}
 
 			_biometryService = new BiometryService(
@@ -80,8 +96,8 @@ namespace BiometryService.SampleApp.Uno
 				App.Instance.LoggerFactory
 			);
 #endif
-#if WINDOWS_UWP
-			_biometryService = new BiometryService(App.Instance.LoggerFactory);
+#if WINDOWS_UWP || WINDOWS
+            _biometryService = new BiometryService(true, true, TaskPoolScheduler.Default.ToBackgroundScheduler());
 #endif
 
 			_ = LoadCapabilities(_cancellationToken);

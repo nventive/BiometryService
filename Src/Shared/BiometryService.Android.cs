@@ -16,7 +16,17 @@ using Java.Security;
 using Javax.Crypto;
 using Javax.Crypto.Spec;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
+using Uno;
+using Uno.Extensions;
+using Uno.Logging;
+using Uno.Threading;
+#if WINUI
+using Microsoft.UI.Dispatching;
+using Dispatcher = Microsoft.UI.Dispatching.DispatcherQueue;
+#else
+using Windows.UI.Core;
+using Dispatcher = Windows.UI.Core.CoreDispatcher;
+#endif
 
 namespace BiometryService
 {
@@ -36,6 +46,8 @@ namespace BiometryService
 		private readonly Context _applicationContext;
 		private readonly ILogger _logger;
 
+		private readonly Dispatcher _dispatcher;
+		private readonly AsyncLock _asyncLock = new AsyncLock();
 		private TaskCompletionSource<BiometricPrompt.AuthenticationResult> _authenticationCompletionSource;
 
 		/// <summary>
@@ -46,8 +58,8 @@ namespace BiometryService
 		/// <param name="loggerFactory"></param>
 		public BiometryService(
 			FragmentActivity fragmentActivity,
-			Func<BiometricPrompt.PromptInfo> promptInfoBuilder,
-			ILoggerFactory loggerFactory = null)
+			Dispatcher dispatcher,
+			FuncAsync<BiometricPrompt.PromptInfo> promptInfoBuilder)
 		{
 			_logger = loggerFactory?.CreateLogger<IBiometryService>() ?? NullLogger<IBiometryService>.Instance;
 
@@ -241,30 +253,30 @@ namespace BiometryService
 		{
 			_authenticationCompletionSource = new TaskCompletionSource<BiometricPrompt.AuthenticationResult>();
 
-			// Prepare and show UI
-			var callback = new AuthenticationCallback(_authenticationCompletionSource, _logger);
-			var executor = ContextCompat.GetMainExecutor(_applicationContext);
-			var biometricPrompt = new BiometricPrompt(_activity, executor, callback);
-
-			var prompt = _promptInfoBuilder();
-			_activity.RunOnUiThread(() =>
-			{
-				try
-				{
-					if (crypto == null)
+				// Prepare and show UI
+				var prompt = await _promptInfoBuilder(ct);
+#if WINUI
+				_dispatcher.TryEnqueue(DispatcherQueuePriority.High, () =>
+#else
+				await _dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
+#endif
+                {
+                    try
 					{
-						biometricPrompt.Authenticate(prompt);
+						if (crypto == null)
+						{
+							_biometricPrompt.Authenticate(prompt);
+						}
+						else
+						{
+							_biometricPrompt.Authenticate(prompt, crypto);
+						}
 					}
-					else
+					catch (System.Exception e)
 					{
-						biometricPrompt.Authenticate(prompt, crypto);
+						_authenticationCompletionSource.TrySetException(e);
 					}
-				}
-				catch (System.Exception e)
-				{
-					_authenticationCompletionSource.TrySetException(e);
-				}
-			});
+				});
 
 			var authenticationTask = _authenticationCompletionSource.Task;
 			using (ct.Register(() => _authenticationCompletionSource.TrySetCanceled()))
