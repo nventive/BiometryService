@@ -12,10 +12,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)BiometryCapabilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BiometryOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BiometryResult.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)BiometryService.WinUI.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BiometryService.Android.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BiometryService.iOS.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)BiometryService.UWP.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BiometryType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IBiometryService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnsupportedBiometryService.cs" />
