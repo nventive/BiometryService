@@ -1,8 +1,14 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+#if WINUI
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Dispatching;
+#else
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Core;
+#endif
 using System;
 #if __IOS__
 using UIKit;
@@ -13,7 +19,7 @@ using System.Reactive.Concurrency;
 using BiometryService.SampleApp.Uno.Droid;
 using AndroidX.Biometric;
 #endif
-#if WINDOWS_UWP
+#if WINDOWS_UWP || WINDOWS
 using System.Reactive.Concurrency;
 #endif
 
@@ -50,7 +56,11 @@ namespace BiometryService.SampleApp.Uno
 			if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
             {
                 _biometryService = new BiometryService(MainActivity.Instance,
+#if WINUI
+                                                   DispatcherQueue,
+#else
                                                    Dispatcher,
+#endif
                                                    ct => Task.FromResult(new BiometricPrompt.PromptInfo.Builder()
                                                     .SetTitle("Biometrics SignIn")
                                                     .SetSubtitle("Biometrics Confirm")
@@ -62,7 +72,11 @@ namespace BiometryService.SampleApp.Uno
             else
             {
 			    _biometryService = new BiometryService(MainActivity.Instance,
-												   Dispatcher,
+#if WINUI
+                                                   DispatcherQueue,
+#else
+                                                   Dispatcher,
+#endif
                                                    ct => Task.FromResult(new BiometricPrompt.PromptInfo.Builder()
 												    .SetTitle("Biometrics SignIn")
 												    .SetSubtitle("Biometrics Confirm")
@@ -71,7 +85,7 @@ namespace BiometryService.SampleApp.Uno
                                                     .Build()));
 			}
 #endif
-#if WINDOWS_UWP
+#if WINDOWS_UWP || WINDOWS
             _biometryService = new BiometryService(true, true, TaskPoolScheduler.Default.ToBackgroundScheduler());
 #endif
         }

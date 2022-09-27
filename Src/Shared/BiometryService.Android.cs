@@ -19,7 +19,13 @@ using Uno;
 using Uno.Extensions;
 using Uno.Logging;
 using Uno.Threading;
+#if WINUI
+using Microsoft.UI.Dispatching;
+using Dispatcher = Microsoft.UI.Dispatching.DispatcherQueue;
+#else
 using Windows.UI.Core;
+using Dispatcher = Windows.UI.Core.CoreDispatcher;
+#endif
 
 namespace BiometryService
 {
@@ -40,7 +46,7 @@ namespace BiometryService
 		private readonly FuncAsync<BiometricPrompt.PromptInfo> _promptInfoBuilder;
 		private readonly KeyStore _keyStore;
 
-		private readonly CoreDispatcher _dispatcher;
+		private readonly Dispatcher _dispatcher;
 		private readonly AsyncLock _asyncLock = new AsyncLock();
 		private TaskCompletionSource<BiometricPrompt.AuthenticationResult> _authenticationCompletionSource;
 		private readonly Context _applicationContext;
@@ -54,7 +60,7 @@ namespace BiometryService
 		/// <param name="authenticators"></param>
 		public BiometryService(
 			FragmentActivity fragmentActivity,
-			CoreDispatcher dispatcher,
+			Dispatcher dispatcher,
 			FuncAsync<BiometricPrompt.PromptInfo> promptInfoBuilder)
 		{
 
@@ -340,9 +346,13 @@ namespace BiometryService
 
 				// Prepare and show UI
 				var prompt = await _promptInfoBuilder(ct);
+#if WINUI
+				_dispatcher.TryEnqueue(DispatcherQueuePriority.High, () =>
+#else
 				await _dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
-				{
-					try
+#endif
+                {
+                    try
 					{
 						if (crypto == null)
 						{
