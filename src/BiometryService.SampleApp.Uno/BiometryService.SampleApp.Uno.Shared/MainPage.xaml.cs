@@ -1,8 +1,14 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+#if WINUI
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Dispatching;
+#else
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Core;
+#endif
 using System;
 using Microsoft.Extensions.Logging;
 #if __IOS__
@@ -14,7 +20,7 @@ using System.Reactive.Concurrency;
 using BiometryService.SampleApp.Uno.Droid;
 using AndroidX.Biometric;
 #endif
-#if WINDOWS_UWP
+#if WINDOWS_UWP || WINDOWS
 using System.Reactive.Concurrency;
 #endif
 
@@ -80,7 +86,7 @@ namespace BiometryService.SampleApp.Uno
 				App.Instance.LoggerFactory
 			);
 #endif
-#if WINDOWS_UWP
+#if WINDOWS_UWP || WINDOWS
 			_biometryService = new BiometryService(App.Instance.LoggerFactory);
 #endif
 
