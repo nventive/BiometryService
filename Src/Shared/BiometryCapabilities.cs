@@ -1,42 +1,42 @@
-namespace BiometryService
+﻿namespace BiometryService
 {
 	/// <summary>
-	///     The device's current biometry capabilities.
+	/// This entity represents the device biometric capabilities.
 	/// </summary>
 	public readonly struct BiometryCapabilities
 	{
+		public BiometryCapabilities(BiometryType biometryType, bool isEnabled, bool isPasscodeSet)
+		{
+			BiometryType = biometryType;
+			IsEnabled = isEnabled;
+			IsPasscodeSet = isPasscodeSet;
+		}
+
 		/// <summary>
-		///     The biometric identifier type supported by the device.
+		/// Gets the <see cref="BiometryType"/> supported by the device.
 		/// </summary>
 		public BiometryType BiometryType { get; }
 
 		/// <summary>
-		///     Gets a <see cref="bool" /> indicating whether the device has a passcode/password set by the user.
+		/// Gets whether the passcode has been set on the device.
 		/// </summary>
-		public bool PasscodeIsSet { get; }
+		public bool IsPasscodeSet { get; }
 
 		/// <summary>
-		///     Gets a <see cref="bool" /> indicating whether the device has biometrics enabled.
+		/// Gets whether the device has biometrics enabled.
 		/// </summary>
 		/// <remarks>
-		///     <para>
-		///         <see cref="IsEnabled" /> can be <c>false</c> if the the user has not enrolled biometrics by adding a finger or
-		///         face. <see cref="IsEnabled" /> can also be <c>false</c> if the user has disabled permission for the application
-		///         to use biometrics in the device settings.
-		///     </para>
+		///		<para>
+		///		<see cref="IsEnabled" /> can be <c>false</c> if the the user has not enrolled biometrics by adding a finger or
+		///			face. <see cref="IsEnabled" /> can also be <c>false</c> if the user has disabled permission for the application
+		///			to use biometrics in the device settings.
+		///		</para>
 		/// </remarks>
 		public bool IsEnabled { get; }
 
 		/// <summary>
-		///     Gets a <see cref="bool" /> indicating whether the device supports biometrics.
+		/// Gets whether the device supports biometrics.
 		/// </summary>
-		public bool IsSupported => BiometryType != BiometryType.None;
-
-		public BiometryCapabilities(BiometryType biometryType, bool biometryIsEnabled, bool passcodeIsSet)
-		{
-			BiometryType = biometryType;
-			IsEnabled = biometryIsEnabled;
-			PasscodeIsSet = passcodeIsSet;
-		}
+		public bool IsSupported => BiometryType != 0;
 	}
 }

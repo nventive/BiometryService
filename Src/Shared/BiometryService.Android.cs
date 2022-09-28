@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
+using Android.Content.PM;
 using Android.Security.Keystore;
 using Android.Util;
 using AndroidX.Biometric;
@@ -15,441 +16,294 @@ using Java.Security;
 using Javax.Crypto;
 using Javax.Crypto.Spec;
 using Microsoft.Extensions.Logging;
-using Uno;
-using Uno.Extensions;
-using Uno.Logging;
-using Uno.Threading;
-#if WINUI
-using Microsoft.UI.Dispatching;
-using Dispatcher = Microsoft.UI.Dispatching.DispatcherQueue;
-#else
-using Windows.UI.Core;
-using Dispatcher = Windows.UI.Core.CoreDispatcher;
-#endif
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BiometryService
 {
 	/// <summary>
-	///     Implementation of the <see cref="IBiometryService" /> for Android.
+	/// Android implementation of <see cref="IBiometryService"/>.
 	/// </summary>
 	public class BiometryService : IBiometryService
 	{
 		private const string ANDROID_KEYSTORE = "AndroidKeyStore"; //Android constant, cannot be changed
 		private const string CIPHER_NAME = "AES/CBC/PKCS7Padding";
-		private const string CRYPTO_OBJECT_KEY_NAME = "BiometricService.UserAuthentication.Services.FingerprintService.CryptoObject";
-		private const string CURVE_NAME = "secp256r1";
-		private const string SIGNATURE_NAME = "SHA256withECDSA";
 		private const string PREFERENCE_NAME = "BiometricPreferences";
 
-		private readonly BiometricPrompt _biometricPrompt;
 		private readonly BiometricManager _biometricManager;
-		private readonly FuncAsync<BiometricPrompt.PromptInfo> _promptInfoBuilder;
+		private readonly Func<BiometricPrompt.PromptInfo> _promptInfoBuilder;
 		private readonly KeyStore _keyStore;
-
-		private readonly Dispatcher _dispatcher;
-		private readonly AsyncLock _asyncLock = new AsyncLock();
-		private TaskCompletionSource<BiometricPrompt.AuthenticationResult> _authenticationCompletionSource;
+		private readonly FragmentActivity _activity;
 		private readonly Context _applicationContext;
+		private readonly ILogger _logger;
+
+		private TaskCompletionSource<BiometricPrompt.AuthenticationResult> _authenticationCompletionSource;
 
 		/// <summary>
-		///     Initializes a new instance of the <see cref="BiometryService" /> class.
+		/// Initializes a new instance of the <see cref="BiometryService" /> class.
 		/// </summary>
 		/// <param name="fragmentActivity"></param>
-		/// <param name="dispatcher"></param>
 		/// <param name="promptInfoBuilder"></param>
-		/// <param name="authenticators"></param>
+		/// <param name="loggerFactory"></param>
 		public BiometryService(
 			FragmentActivity fragmentActivity,
-			Dispatcher dispatcher,
-			FuncAsync<BiometricPrompt.PromptInfo> promptInfoBuilder)
+			Func<BiometricPrompt.PromptInfo> promptInfoBuilder,
+			ILoggerFactory loggerFactory = null)
 		{
+			_logger = loggerFactory?.CreateLogger<IBiometryService>() ?? NullLogger<IBiometryService>.Instance;
 
-			fragmentActivity.Validation().NotNull(nameof(fragmentActivity));
-			_dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
 			_promptInfoBuilder = promptInfoBuilder ?? throw new ArgumentNullException(nameof(promptInfoBuilder));
+			_activity = fragmentActivity ?? throw new ArgumentNullException(nameof(fragmentActivity));
 
 			_applicationContext = Application.Context;
-			var executor = ContextCompat.GetMainExecutor(_applicationContext);
-			var callback = new AuthenticationCallback(OnAuthenticationSucceeded, OnAuthenticationFailed, OnAuthenticationError);
-
-			_biometricPrompt = new BiometricPrompt(fragmentActivity, executor, callback);
 			_biometricManager = BiometricManager.From(_applicationContext);
 
 			_keyStore = KeyStore.GetInstance(ANDROID_KEYSTORE);
 			_keyStore.Load(null);
-
 		}
 
-		/// <summary>
-		///     Validate the user identity.
-		/// </summary>
-		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <returns>A <see cref="BiometryResult" /> enum value.</returns>
-		public async Task<BiometryResult> ValidateIdentity(CancellationToken ct)
+		/// <inheritdoc/>
+		public Task<BiometryCapabilities> GetCapabilities(CancellationToken ct)
 		{
-			var response = await AuthenticateAndProcess(ct, CRYPTO_OBJECT_KEY_NAME);
-
-			var result = new BiometryResult();
-
-			if (response.AuthenticationType == 0) //BiometryAuthenticationResult.Granted
+			var biometryType = BiometryType.None;
+			if (_activity.PackageManager.HasSystemFeature(PackageManager.FeatureFace))
 			{
-				result.AuthenticationResult = BiometryAuthenticationResult.Granted;
-			}
-			else if (response.AuthenticationType == 1) //BiometryAuthenticationResult.Denied
-			{
-				result.AuthenticationResult = BiometryAuthenticationResult.Denied;
-			}
-			else if (response.AuthenticationType == 2) //BiometryAuthenticationResult.Cancelled
-			{
-				result.AuthenticationResult = BiometryAuthenticationResult.Cancelled;
+				biometryType |= BiometryType.Face;
 			}
 
-			return result;
+			if (_activity.PackageManager.HasSystemFeature(PackageManager.FeatureFingerprint))
+			{
+				biometryType |= BiometryType.Fingerprint;
+			}
+
+			var isEnabled = _biometricManager.CanAuthenticate(BiometricManager.Authenticators.BiometricStrong) == BiometricManager.BiometricSuccess;
+			var devicePinAvailable = _biometricManager.CanAuthenticate(BiometricManager.Authenticators.DeviceCredential) == BiometricManager.BiometricSuccess;
+			return Task.FromResult(new BiometryCapabilities(biometryType, isEnabled, devicePinAvailable));
 		}
 
-		/// <summary>
-		///     Retrieve and decrypt data associated to the key.
-		/// </summary>
-		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="key">The key for the value.</param>
-		/// <returns>A string</returns>
+		/// <inheritdoc/>
+		public async Task ScanBiometry(CancellationToken ct)
+		{
+			await AuthenticateBiometry(ct);
+		}
+
+		/// <inheritdoc/>
+		public async Task Encrypt(CancellationToken ct, string keyName, string value)
+		{
+			if (_logger.IsEnabled(LogLevel.Debug))
+			{
+				_logger.LogDebug($"Encrypting the fingerprint for the key '{keyName}'.");
+			}
+
+			var capabilites = await GetCapabilities(ct);
+			if (capabilites.IsEnabled && capabilites.IsSupported)
+			{
+				var crypto = CreateCryptoObject(keyName);
+				var result = await AuthenticateBiometry(ct, crypto);
+				var valueToEncrypt = Encoding.UTF8.GetBytes(value);
+				var encryptedData = result.CryptoObject.Cipher.DoFinal(valueToEncrypt);
+				var iv = result.CryptoObject.Cipher.GetIV();
+
+				var bytes = new byte[iv.Length + encryptedData.Length];
+				iv.CopyTo(bytes, 0);
+				encryptedData.CopyTo(bytes, iv.Length);
+
+				if (_logger.IsEnabled(LogLevel.Information))
+				{
+					_logger.LogInformation($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
+				}
+
+				string encodedData = Base64.EncodeToString(bytes, Base64Flags.NoWrap);
+				var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
+				sharedpref.Edit().PutString(keyName, encodedData).Apply();
+			}
+			else
+			{
+				var reason = BiometryExceptionReason.Unavailable;
+				var message = "Biometry is not available on this device";
+
+				if (capabilites.IsSupported)
+				{
+					reason = BiometryExceptionReason.NotEnrolled;
+					message = "Biometrics are not enrolled on this device";
+				}
+
+				throw new BiometryException(reason, message);
+			}
+		}
+
+		/// <inheritdoc/>
 		public async Task<string> Decrypt(CancellationToken ct, string key)
 		{
-			if (this.Log().IsEnabled(LogLevel.Debug))
+			if (_logger.IsEnabled(LogLevel.Debug))
 			{
-				this.Log().Debug($"Decrypting the fingerprint for the key '{key}'.");
+				_logger.LogDebug($"Decrypting the fingerprint for the key '{key}'.");
 			}
-			key.Validation().NotNullOrEmpty(nameof(key));
 
 			var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
 			var storedData = sharedpref.GetString(key, null);
 
+			if (storedData == null)
+			{
+				throw new BiometryException(BiometryExceptionReason.Failed, "Encrypted values could not be found. It may have been removed.");
+			}
+
 			byte[] data = Base64.Decode(storedData, Base64Flags.NoWrap);
 
-			var iv = data.ToRangeArray(0, 16);
-			var buffer = data.ToRangeArray(16, int.MaxValue);
+			var iv = new byte[16];
+			Array.ConstrainedCopy(
+				data,
+				0,
+				iv,
+				0,
+				16
+			);
 
-			var crypto = BuildSymmetricCryptoObject(key, CIPHER_NAME, CipherMode.DecryptMode, iv);
-			var result = await AuthenticateAndProcess(ct, key, crypto) ?? throw new System.OperationCanceledException();
+			var buffer = new byte[data.Length - 16];
+			Array.ConstrainedCopy(
+				data,
+				16,
+				buffer,
+				0,
+				data.Length - 16
+			);
+
+			var crypto = GetCryptoObject(key, iv);
+			var result = await AuthenticateBiometry(ct, crypto);
 			var decryptedData = result.CryptoObject.Cipher.DoFinal(buffer);
 
-			if (this.Log().IsEnabled(LogLevel.Information))
+			if (_logger.IsEnabled(LogLevel.Information))
 			{
-				this.Log().Info($"Succcessfully decrypted the fingerprint for the key '{key}'.");
+				_logger.LogInformation($"Succcessfully decrypted the fingerprint for the key '{key}'.");
 			}
 
 			return Encoding.ASCII.GetString(decryptedData);
 		}
 
-		/// <summary>
-		///     Retrieve and decrypt data associated to the key.
-		/// </summary>
-		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="key">The key for the value.</param>
-		/// <param name="value">To be decrypt.</param>
-		/// <returns>A string</returns>
-		public async Task<string> Decrypt(CancellationToken ct, string key, string value)
+		/// <inheritdoc/>
+		public void Remove(string key)
 		{
-			if (this.Log().IsEnabled(LogLevel.Debug))
-			{
-				this.Log().Debug($"Decrypting the fingerprint for the key '{key}'.");
-			}
-
-			key.Validation().NotNullOrEmpty(nameof(key));
-			key.Validation().NotNullOrEmpty(nameof(value));
-
-			byte[] data = Base64.Decode(value, Base64Flags.NoWrap);
-
-			var iv = data.ToRangeArray(0, 16);
-			var buffer = data.ToRangeArray(16, int.MaxValue);
-
-			var crypto = BuildSymmetricCryptoObject(key, CIPHER_NAME, CipherMode.DecryptMode, iv);
-			var result = await AuthenticateAndProcess(ct, key, crypto) ?? throw new System.OperationCanceledException();
-			var decryptedData = result.CryptoObject.Cipher.DoFinal(buffer);
-
-			if (this.Log().IsEnabled(LogLevel.Information))
-			{
-				this.Log().Info($"Succcessfully decrypted the fingerprint for the key '{key}'.");
-			}
-
-			return Encoding.ASCII.GetString(decryptedData);
-		}
-
-		/// <summary>
-		///     Encrypt the value and store the key into the keytore.
-		/// </summary>
-		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="keyName">The key for the value.</param>
-		/// <param name="value">A string value to encrypt.</param>
-		/// <returns>A string</returns>
-		public async Task Encrypt(CancellationToken ct, string keyName, string value)
-		{
-			if (this.Log().IsEnabled(LogLevel.Debug))
-			{
-				this.Log().Debug($"Encrypting the fingerprint for the key '{keyName}'.");
-			}
-
-			keyName.Validation().NotNullOrEmpty(nameof(keyName));
-			value.Validation().NotNull(nameof(value));
-
-
-			var crypto = BuildSymmetricCryptoObject(keyName, CIPHER_NAME, CipherMode.EncryptMode);
-			var result = await AuthenticateAndProcess(ct, keyName, crypto) ?? throw new System.OperationCanceledException();
-			var encryptedData = result.CryptoObject.Cipher.DoFinal(Encoding.ASCII.GetBytes(value));
-			var iv = result.CryptoObject.Cipher.GetIV();
-
-			var bytes = new byte[iv.Length + encryptedData.Length];
-			iv.CopyTo(bytes, 0);
-			encryptedData.CopyTo(bytes, iv.Length);
-
-			if (this.Log().IsEnabled(LogLevel.Information))
-			{
-				this.Log().Info($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
-			}
-
-			string encodedData = Base64.EncodeToString(bytes, Base64Flags.NoWrap);
 			var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
-			sharedpref.Edit().PutString(keyName, encodedData).Apply();
+			sharedpref.Edit().Remove(key).Apply();
 		}
 
-		/// <summary>
-		///     Encrypt the value and store the key into the keytore.
-		/// </summary>
-		/// <param name="ct">The <see cref="CancellationToken" /> to use.</param>
-		/// <param name="keyName">The key for the value.</param>
-		/// <param name="value">A string value to encrypt.</param>
-		/// <returns>A string</returns>
-		public async Task<string> EncryptAndReturn(CancellationToken ct, string keyName, string value)
+		private async Task<BiometricPrompt.AuthenticationResult> AuthenticateBiometry(CancellationToken ct, BiometricPrompt.CryptoObject crypto = null)
 		{
-			if (this.Log().IsEnabled(LogLevel.Debug))
+			if (_logger.IsEnabled(LogLevel.Debug))
 			{
-				this.Log().Debug($"Encrypting the fingerprint for the key '{keyName}'.");
+				_logger.LogDebug($"Start authenticating the user biometry.");
 			}
 
-			keyName.Validation().NotNullOrEmpty(nameof(keyName));
-			value.Validation().NotNull(nameof(value));
-
-			var crypto = BuildSymmetricCryptoObject(keyName, CIPHER_NAME, CipherMode.EncryptMode);
-			var result = await AuthenticateAndProcess(ct, keyName, crypto) ?? throw new System.OperationCanceledException();
-			var encryptedData = result.CryptoObject.Cipher.DoFinal(Encoding.ASCII.GetBytes(value));
-			var iv = result.CryptoObject.Cipher.GetIV();
-
-			var bytes = new byte[iv.Length + encryptedData.Length];
-			iv.CopyTo(bytes, 0);
-			encryptedData.CopyTo(bytes, iv.Length);
-
-			if (this.Log().IsEnabled(LogLevel.Information))
+			int authenticateCode;
+			if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
 			{
-				this.Log().Info($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
+				authenticateCode = _biometricManager.CanAuthenticate(); // TODO Eliminate warning somehow?
+			}
+			else
+			{
+				authenticateCode = _biometricManager.CanAuthenticate(BiometricManager.Authenticators.BiometricStrong);
 			}
 
-			return Base64.EncodeToString(bytes, Base64Flags.NoWrap);
-		}
-
-		/// <summary>
-		///     Gets the device's current biometric capabilities.
-		/// </summary>
-		/// <returns>A <see cref="BiometryCapabilities" /> struct instance.</returns>
-		public Task<BiometryCapabilities> GetCapabilities()
-		{
-			bool _isEnabled = false;
-			switch (_biometricManager.CanAuthenticate(BiometricManager.Authenticators.BiometricStrong))
+			if (authenticateCode == BiometricManager.BiometricSuccess)
 			{
-				case BiometricManager.BiometricSuccess:
-					_isEnabled = true;
+				return await PromptBiometryAuthentication(ct, crypto);
+			}
+
+			if (_logger.IsEnabled(LogLevel.Error))
+			{
+				_logger.LogError($"The device cannot authenticate with biometry.");
+			}
+
+			var reason = BiometryExceptionReason.Failed;
+			var message = string.Empty;
+
+			switch (authenticateCode)
+			{
+				case BiometricManager.BiometricErrorNoneEnrolled:
+					reason = BiometryExceptionReason.NotEnrolled;
+					message = "No biometric(s) registered.";
 					break;
 				case BiometricManager.BiometricErrorNoHardware:
-					_isEnabled = false;
-					break;
-				case BiometricManager.BiometricErrorNoneEnrolled:
-					_isEnabled = false;
-					break;
+				case BiometricManager.BiometricErrorHwUnavailable:
 				case BiometricManager.BiometricErrorSecurityUpdateRequired:
-					_isEnabled = false;
+				case BiometricManager.BiometricErrorUnsupported:
+					reason = BiometryExceptionReason.Unavailable;
+					message = $"Biometric is not available. Code = {authenticateCode}";
 					break;
 				default:
+					message = $"Something went wrong. Code = {authenticateCode}";
 					break;
 			}
-			bool devicePinAvailable = Convert.ToBoolean(_biometricManager.CanAuthenticate(BiometricManager.Authenticators.DeviceCredential));
 
-			return Task.Run(() =>
+			throw new BiometryException(reason, message);
+		}
+
+		private async Task<BiometricPrompt.AuthenticationResult> PromptBiometryAuthentication(CancellationToken ct, BiometricPrompt.CryptoObject crypto = null)
+		{
+			_authenticationCompletionSource = new TaskCompletionSource<BiometricPrompt.AuthenticationResult>();
+
+			// Prepare and show UI
+			var callback = new AuthenticationCallback(_authenticationCompletionSource, _logger);
+			var executor = ContextCompat.GetMainExecutor(_applicationContext);
+			var biometricPrompt = new BiometricPrompt(_activity, executor, callback);
+
+			var prompt = _promptInfoBuilder();
+			_activity.RunOnUiThread(() =>
 			{
-				return new BiometryCapabilities(BiometryType.FaceOrFingerprint, _isEnabled, devicePinAvailable);
+				try
+				{
+					if (crypto == null)
+					{
+						biometricPrompt.Authenticate(prompt);
+					}
+					else
+					{
+						biometricPrompt.Authenticate(prompt, crypto);
+					}
+				}
+				catch (System.Exception e)
+				{
+					_authenticationCompletionSource.TrySetException(e);
+				}
 			});
-		}
 
-		private BiometricPrompt.CryptoObject BuildSymmetricCryptoObject(string keyName, string cipherName, CipherMode mode, byte[] iv = null)
-		{
-			if (this.Log().IsEnabled(LogLevel.Debug))
+			var authenticationTask = _authenticationCompletionSource.Task;
+			using (ct.Register(() => _authenticationCompletionSource.TrySetCanceled()))
 			{
-				this.Log().Debug($"Building a symmetric crypto object (key name: '{keyName}', mode: '{mode}').");
+				await authenticationTask;
 			}
 
-			var cipher = Cipher.GetInstance(cipherName);
-
-			if (_keyStore.IsKeyEntry(keyName))
+			if (authenticationTask.IsCompletedSuccessfully)
 			{
-				if (mode == CipherMode.EncryptMode)
+				if (_logger.IsEnabled(LogLevel.Information))
 				{
-					_keyStore.DeleteEntry(keyName);
-				}
-				else if (mode == CipherMode.DecryptMode)
-				{
-					try
-					{
-						cipher.Init(mode, _keyStore.GetKey(keyName, null), new IvParameterSpec(iv));
-
-						return new BiometricPrompt.CryptoObject(cipher);
-					}
-					catch (KeyPermanentlyInvalidatedException)
-					{
-						_keyStore.DeleteEntry(keyName);
-
-						throw;
-					}
-				}
-			}
-			else if (mode == CipherMode.DecryptMode)
-			{
-				throw new ArgumentException("Key not found.");
-			}
-
-			GenerateSymmetricKey(keyName);
-
-			cipher.Init(mode, _keyStore.GetKey(keyName, null));
-
-			if (this.Log().IsEnabled(LogLevel.Information))
-			{
-				this.Log().Info($"Return the symmetric crypto object (key name: '{keyName}', mode: '{mode}').");
-			}
-
-			return new BiometricPrompt.CryptoObject(cipher);
-		}
-
-
-		private async Task<BiometricPrompt.AuthenticationResult> AuthenticateAndProcess(CancellationToken ct, string keyName, BiometricPrompt.CryptoObject crypto = null)
-		{
-			if (this.Log().IsEnabled(LogLevel.Debug))
-			{
-				this.Log().Debug($"Authenticating and processing the fingerprint (key name: '{keyName}').");
-			}
-
-			int result = 0;
-			if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
-				result = _biometricManager.CanAuthenticate();
-			else
-				result = _biometricManager.CanAuthenticate(BiometricManager.Authenticators.BiometricStrong);
-
-			if (result == BiometricManager.BiometricSuccess)
-			{
-				_authenticationCompletionSource = new TaskCompletionSource<BiometricPrompt.AuthenticationResult>();
-
-				// Prepare and show UI
-				var prompt = await _promptInfoBuilder(ct);
-#if WINUI
-				_dispatcher.TryEnqueue(DispatcherQueuePriority.High, () =>
-#else
-				await _dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
-#endif
-                {
-                    try
-					{
-						if (crypto == null)
-						{
-							_biometricPrompt.Authenticate(prompt);
-						}
-						else
-						{
-							_biometricPrompt.Authenticate(prompt, crypto);
-						}
-					}
-					catch (System.Exception e)
-					{
-						_authenticationCompletionSource.TrySetException(e);
-					}
-				});
-
-				var authenticationTask = _authenticationCompletionSource.Task;
-				await Task.WhenAny(authenticationTask);
-
-				if (authenticationTask.IsCompletedSuccessfully && this.Log().IsEnabled(LogLevel.Information))
-				{
-					this.Log().Info($"Successfully authenticated and processed the fingerprint (key name: '{keyName}').");
+					_logger.LogInformation($"Successfully authenticated and processed the biometric).");
 				}
 
-				if (authenticationTask.IsCanceled)
-				{
-					throw new OperationCanceledException();
-				}
 				return authenticationTask.Result;
 			}
 			else
 			{
-				if (result == BiometricManager.BiometricErrorNoneEnrolled)
+				if (authenticationTask.IsCanceled)
 				{
-					throw new InvalidOperationException("No fingerprint(s) registered.");
+					throw new OperationCanceledException();
 				}
-				else
-				{
-					if (this.Log().IsEnabled(LogLevel.Warning))
-					{
-						this.Log().Warn($"Fingerprint authentication is not available.");
-					}
 
-					throw new NotSupportedException("Fingerprint authentication is not available.");
-				}
+				throw new BiometryException(BiometryExceptionReason.Failed, "Something went wrong while attempting to complete biometry authentication");
 			}
 		}
 
-		private class AuthenticationCallback : BiometricPrompt.AuthenticationCallback
+		private BiometricPrompt.CryptoObject CreateCryptoObject(string keyName)
 		{
-			private readonly Action<BiometricPrompt.AuthenticationResult> _onSuccess;
-			private readonly Action _onFailure;
-			private readonly Action<int, string> _onError;
+			var cipher = Cipher.GetInstance(CIPHER_NAME);
 
-			public AuthenticationCallback(Action<BiometricPrompt.AuthenticationResult> onSuccess, Action onFailure, Action<int, string> onError)
+			if (_keyStore.IsKeyEntry(keyName))
 			{
-				this._onSuccess = onSuccess;
-				this._onFailure = onFailure;
-				this._onError = onError;
+				_keyStore.DeleteEntry(keyName);
 			}
 
-			public override void OnAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) => _onSuccess(result);
-
-			public override void OnAuthenticationFailed() => _onFailure();
-
-			public override void OnAuthenticationError(int errMsgId, ICharSequence errString) => _onError(errMsgId, errString?.ToString());
-		}
-
-		private void OnAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result)
-		{
-			_authenticationCompletionSource.TrySetResult(result);
-		}
-
-		private void OnAuthenticationFailed()
-		{
-		}
-
-		private void OnAuthenticationError(int code, string message)
-		{
-			switch (code)
+			if (_logger.IsEnabled(LogLevel.Debug))
 			{
-				case BiometricPrompt.ErrorNegativeButton: // Prompt cancellation
-				case BiometricPrompt.ErrorUserCanceled:
-				case BiometricPrompt.ErrorCanceled:
-					_authenticationCompletionSource.SetCanceled();
-					return;
-				default:
-					_authenticationCompletionSource.TrySetException(new BiometryException(code, message));
-					return;
-			}
-		}
-
-		private void GenerateSymmetricKey(string keyName)
-		{
-			if (this.Log().IsEnabled(LogLevel.Debug))
-			{
-				this.Log().Debug($"Generating a symmetric pair (key name: '{keyName}').");
+				_logger.LogDebug($"Generating a symmetric pair (key name: '{keyName}').");
 			}
 
 			var keygen = KeyGenerator.GetInstance(KeyProperties.KeyAlgorithmAes, ANDROID_KEYSTORE);
@@ -463,9 +317,109 @@ namespace BiometryService
 
 			keygen.GenerateKey();
 
-			if (this.Log().IsEnabled(LogLevel.Information))
+			if (_logger.IsEnabled(LogLevel.Information))
 			{
-				this.Log().Info($"Successfully generated a symmetric pair (key name: '{keyName}').");
+				_logger.LogInformation($"Successfully generated a symmetric pair (key name: '{keyName}').");
+			}
+
+			cipher.Init(CipherMode.EncryptMode, _keyStore.GetKey(keyName, null));
+
+			return new BiometricPrompt.CryptoObject(cipher);
+		}
+
+		private BiometricPrompt.CryptoObject GetCryptoObject(string keyName, byte[] iv = null)
+		{
+			var cipher = Cipher.GetInstance(CIPHER_NAME);
+
+			if (_keyStore.IsKeyEntry(keyName))
+			{
+				try
+				{
+					cipher.Init(CipherMode.DecryptMode, _keyStore.GetKey(keyName, null), new IvParameterSpec(iv));
+
+					return new BiometricPrompt.CryptoObject(cipher);
+				}
+				catch (KeyPermanentlyInvalidatedException)
+				{
+					_keyStore.DeleteEntry(keyName);
+
+					throw new BiometryException(BiometryExceptionReason.Failed, "Something went wrong while generating the CryptoObject used to decrypt.");
+				}
+			}
+			else
+			{
+				throw new BiometryException(BiometryExceptionReason.Failed, $"The symmetric pair associated to {keyName} to decrypt has been lost.");
+			}
+		}
+
+		private class AuthenticationCallback : BiometricPrompt.AuthenticationCallback
+		{
+			private readonly TaskCompletionSource<BiometricPrompt.AuthenticationResult> _tcs;
+			private readonly ILogger _logger;
+
+			public AuthenticationCallback(TaskCompletionSource<BiometricPrompt.AuthenticationResult> tcs, ILogger logger)
+			{
+				_tcs = tcs;
+				_logger = logger;
+			}
+
+			public override void OnAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result)
+			{
+				if (_logger.IsEnabled(LogLevel.Information))
+				{
+					_logger.LogInformation("User attempt to use biometry succeeded.");
+				}
+
+				_tcs.TrySetResult(result);
+			}
+
+			public override void OnAuthenticationFailed()
+			{
+				// This methods is called after an attempt to use biometry.
+				// It does not means that it will close the prompt yet.
+
+				if (_logger.IsEnabled(LogLevel.Warning))
+				{
+					_logger.LogWarning("User attempt to use biometry failed.");
+				}
+			}
+
+			public override void OnAuthenticationError(int errMsgId, ICharSequence errString)
+			{
+				var reason = BiometryExceptionReason.Failed;
+				switch (errMsgId)
+				{
+					// Prompt has been cancelled.
+					case BiometricPrompt.ErrorNegativeButton:
+					case BiometricPrompt.ErrorUserCanceled:
+					case BiometricPrompt.ErrorCanceled:
+						// Use .NET cancelled exception instead.
+						_tcs.SetCanceled();
+						return;
+					// Error due to biometric not being available.
+					case BiometricPrompt.ErrorHwUnavailable:
+					case BiometricPrompt.ErrorHwNotPresent:
+					case BiometricPrompt.ErrorSecurityUpdateRequired:
+					case BiometricPrompt.ErrorVendor:
+						reason = BiometryExceptionReason.Unavailable;
+						break;
+					// Error due to biometric not being enrolled.
+					case BiometricPrompt.ErrorNoBiometrics:
+						reason = BiometryExceptionReason.NotEnrolled;
+						break;
+					// Error due to passcode is needed.
+					case BiometricPrompt.ErrorNoDeviceCredential:
+						reason = BiometryExceptionReason.PasscodeNeeded;
+						break;
+					// Error due to being locked.
+					case BiometricPrompt.ErrorLockout:
+					case BiometricPrompt.ErrorLockoutPermanent:
+						reason = BiometryExceptionReason.Locked;
+						break;
+				}
+
+				var message = errString?.ToString() ?? $"Biometry authentication failed with errMsgId = {errMsgId}";
+				_tcs.TrySetException(new BiometryException(reason, message));
 			}
 		}
 	}
