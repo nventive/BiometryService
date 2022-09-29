@@ -29,7 +29,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\BiometryService.WinUI\BiometryService.WinUI.csproj" />
+		<ProjectReference Include="..\..\Src\BiometryService.WinUI\BiometryService.WinUI.csproj" />
 	</ItemGroup>
 
 	<Choose>
