@@ -7,7 +7,7 @@
     <Authors>nventive</Authors>
     <Company>nventive</Company>
     <RootNamespace>BiometryService</RootNamespace>
-    <PackageId>BiometryService.Uno.WinUI</PackageId>
+    <PackageId>BiometryService.WinUI</PackageId>
     <Description>BiometryService</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

@@ -10,7 +10,7 @@
     <Authors>nventive</Authors>
     <Company>nventive</Company>
     <RootNamespace>BiometryService</RootNamespace>
-    <PackageId>BiometryService.Uno</PackageId>
+    <PackageId>BiometryService</PackageId>
     <Description>BiometryService</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
