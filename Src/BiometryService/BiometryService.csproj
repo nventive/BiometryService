@@ -1,5 +1,4 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.44">
-
   <PropertyGroup>
     <!--
 	  Conditionally include target frameworks based on desktop OS.

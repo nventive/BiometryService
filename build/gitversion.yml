@@ -5,7 +5,7 @@ continuous-delivery-fallback-tag: ""
 increment: none # Disabled as it is not used. Saves time on the GitVersion step
 branches:
   master:
-    regex: master
+    regex: ^master$|^main$
     tag: dev
     increment: none
   beta:
