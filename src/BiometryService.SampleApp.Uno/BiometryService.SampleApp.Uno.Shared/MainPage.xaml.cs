@@ -3,11 +3,9 @@ using System.Threading.Tasks;
 #if WINUI
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Dispatching;
 #else
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Core;
 #endif
 using System;
 using Microsoft.Extensions.Logging;

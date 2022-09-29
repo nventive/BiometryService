@@ -10,8 +10,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)BiometryCapabilities.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)BiometryOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)BiometryResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BiometryException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BiometryExceptionReason.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BiometryService.Android.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BiometryService.iOS.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BiometryType.cs" />

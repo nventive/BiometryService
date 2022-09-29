@@ -122,6 +122,7 @@
     <PackageReference Include="Uno.UI.Adapter.Microsoft.Extensions.Logging">
       <Version>4.0.7</Version>
     </PackageReference>
+    <PackageReference Include="Uno.SourceGenerationTasks" Version="4.1.0" />
     <PackageReference Include="Uno.UI.RemoteControl" Version="4.0.7" Condition="'$(Configuration)'=='Debug'" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Filter" Version="1.1.1" />
@@ -157,9 +158,9 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\..\BiometryService.Uno\BiometryService.Uno.csproj">
+    <ProjectReference Include="..\..\BiometryService\BiometryService.csproj">
       <Project>{38d70859-8ca3-4e16-b696-c5fb404b3d82}</Project>
-      <Name>BiometryService.Uno</Name>
+      <Name>BiometryService</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="..\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems" Label="Shared" Condition="Exists('..\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems')" />

@@ -19,9 +19,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
-    <PackageReference Include="Uno.Core" Version="4.0.1" />
-    <PackageReference Include="Uno.WinUI" Version="4.4.22" />
-    <PackageReference Include="Uno.SourceGenerationTasks" Version="4.1.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net6.0-android'">
     <PackageReference Include="Xamarin.AndroidX.Biometric" Version="1.1.0.10" />

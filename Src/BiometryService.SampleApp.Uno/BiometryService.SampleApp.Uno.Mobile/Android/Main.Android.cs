@@ -28,7 +28,7 @@ namespace BiometryService.SampleApp.Uno.Droid
             ConfigureUniversalImageLoader();
         }
 
-        private static void ConfigureUniversalImageLoader()
+        private void ConfigureUniversalImageLoader()
         {
             // Create global configuration and initialize ImageLoader with this config
             ImageLoaderConfiguration config = new ImageLoaderConfiguration

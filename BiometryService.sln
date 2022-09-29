@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiometryService.Uno", "Src\BiometryService.Uno\BiometryService.Uno.csproj", "{38D70859-8CA3-4E16-B696-C5FB404B3D82}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiometryService", "Src\BiometryService\BiometryService.csproj", "{38D70859-8CA3-4E16-B696-C5FB404B3D82}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{E22802DE-B587-470A-B242-86A8E362FD4F}"
 EndProject
@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiometryService.SampleApp.U
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Library", "Library", "{986F4BC6-3A85-44B3-9365-E9D36E3D0215}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiometryService.Uno.WinUI", "Src\BiometryService.Uno.WinUI\BiometryService.Uno.WinUI.csproj", "{46578837-8751-498E-89F1-8E4F739D66C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiometryService.WinUI", "Src\BiometryService.WinUI\BiometryService.WinUI.csproj", "{46578837-8751-498E-89F1-8E4F739D66C9}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Shared", "Src\Shared\Shared.shproj", "{8EF2B01A-6C62-4201-A8A9-8E1207662B9C}"
 EndProject

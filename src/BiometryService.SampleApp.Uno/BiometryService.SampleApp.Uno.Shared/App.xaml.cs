@@ -45,7 +45,7 @@ namespace BiometryService.SampleApp.Uno
 			ConfigureFilters(global::Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory);
 
 			this.InitializeComponent();
-#if !WINUI
+#if !WINDOWS
 			this.Suspending += OnSuspending;
 #endif
 		}
@@ -125,6 +125,7 @@ namespace BiometryService.SampleApp.Uno
 			throw new Exception($"Failed to load {e.SourcePageType.FullName}: {e.Exception}");
 		}
 
+#if !WINDOWS
 		/// <summary>
 		/// Invoked when application execution is being suspended.  Application state is saved
 		/// without knowing whether the application will be terminated or resumed with the contents
@@ -138,6 +139,7 @@ namespace BiometryService.SampleApp.Uno
 			//TODO: Save application state and stop any background activity
 			deferral.Complete();
 		}
+#endif
 
 
 		/// <summary>
