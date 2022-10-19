@@ -1,7 +1,7 @@
 trigger:
   branches:
     include:
-    - master
+    - main
 
 resources:
    containers:
@@ -18,7 +18,7 @@ variables:
 - name: SolutionFileName # Example: MyApplication.sln
   value: BiometryService.sln
 - name: IsReleaseBranch # Should this branch name use the release stage
-  value: $[or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/feature/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'))]
+  value: $[or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/feature/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'))]
 - name:  AppCenterAndroidSlug
   value: 'nventive-framework/Biometry-Service-1'
 - name:  AppCenteriOSSlug
