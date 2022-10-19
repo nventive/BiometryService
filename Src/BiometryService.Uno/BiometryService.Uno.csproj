@@ -10,7 +10,7 @@
     <Authors>nventive</Authors>
     <Company>nventive</Company>
     <AssemblyName>BiometryService</AssemblyName>
-    <PackageId>BiometryService</PackageId>
+    <PackageId>BiometryService.Uno</PackageId>
     <Description>BiometryService</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>biometry;mvvm;xamarin;uwp;ios;android</PackageTags>
