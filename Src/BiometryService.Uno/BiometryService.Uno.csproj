@@ -1,5 +1,4 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.44">
-
   <PropertyGroup>
     <!--
 	  Conditionally include target frameworks based on desktop OS.
@@ -7,12 +6,18 @@
 	  -->
     <TargetFrameworks Condition=" '$([MSBuild]::IsOsPlatform(OSX))' ">netstandard2.0;xamarinios10;</TargetFrameworks>
     <TargetFrameworks Condition=" '!$([MSBuild]::IsOsPlatform(OSX))' ">netstandard2.0;xamarinios10;monoandroid11.0;monoandroid12.0;uap10.0.19041</TargetFrameworks>
+    <RootNamespace>BiometryService</RootNamespace>
     <Authors>nventive</Authors>
     <Company>nventive</Company>
-    <RootNamespace>BiometryService</RootNamespace>
-    <PackageId>BiometryService.Uno</PackageId>
+    <AssemblyName>BiometryService</AssemblyName>
+    <PackageId>BiometryService</PackageId>
     <Description>BiometryService</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageTags>biometry;mvvm;xamarin;uwp;ios;android</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/nventive/BiometryService</PackageProjectUrl>
+
+    <!-- Needed for Source Link support -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
@@ -20,11 +25,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
     <PackageReference Include="Uno.Core" Version="4.0.1" />
     <PackageReference Include="Uno.UI" Version="4.0.7" />
-    <PackageReference Include="Uno.SourceGenerationTasks" Version="4.1.0-dev.9" />
+    <PackageReference Include="Uno.SourceGenerationTasks" Version="4.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Needed for Source Link support -->
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='monoandroid11.0' or '$(TargetFramework)'=='monoandroid12.0'">
