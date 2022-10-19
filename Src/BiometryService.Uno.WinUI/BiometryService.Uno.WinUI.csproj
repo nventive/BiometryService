@@ -6,7 +6,7 @@
     <Authors>nventive</Authors>
     <Company>nventive</Company>
     <AssemblyName>BiometryService</AssemblyName>
-    <PackageId>BiometryService</PackageId>
+    <PackageId>BiometryService.Uno.WinUI</PackageId>
     <Description>BiometryService</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>biometry;mvvm;maui;winui;ios;android</PackageTags>
