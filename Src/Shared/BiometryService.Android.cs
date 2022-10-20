@@ -252,26 +252,30 @@ namespace BiometryService
 		{
 			_authenticationCompletionSource = new TaskCompletionSource<BiometricPrompt.AuthenticationResult>();
 
-				// Prepare and show UI
-				var prompt = await _promptInfoBuilder(ct);
-				await _dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
+			// Prepare and show UI
+			var callback = new AuthenticationCallback(_authenticationCompletionSource, _logger);
+			var executor = ContextCompat.GetMainExecutor(_applicationContext);
+			var biometricPrompt = new BiometricPrompt(_activity, executor, callback);
+
+			var prompt = _promptInfoBuilder();
+			_activity.RunOnUiThread(() =>
+			{
+				try
 				{
-					try
+					if (crypto == null)
 					{
-						if (crypto == null)
-						{
-							_biometricPrompt.Authenticate(prompt);
-						}
-						else
-						{
-							_biometricPrompt.Authenticate(prompt, crypto);
-						}
+						biometricPrompt.Authenticate(prompt);
 					}
-					catch (System.Exception e)
+					else
 					{
-						_authenticationCompletionSource.TrySetException(e);
+						biometricPrompt.Authenticate(prompt, crypto);
 					}
-				});
+				}
+				catch (System.Exception e)
+				{
+					_authenticationCompletionSource.TrySetException(e);
+				}
+			});
 
 			var authenticationTask = _authenticationCompletionSource.Task;
 			using (ct.Register(() => _authenticationCompletionSource.TrySetCanceled()))
