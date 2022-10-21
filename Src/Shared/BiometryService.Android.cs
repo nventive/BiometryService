@@ -16,17 +16,6 @@ using Java.Security;
 using Javax.Crypto;
 using Javax.Crypto.Spec;
 using Microsoft.Extensions.Logging;
-using Uno;
-using Uno.Extensions;
-using Uno.Logging;
-using Uno.Threading;
-#if WINUI
-using Microsoft.UI.Dispatching;
-using Dispatcher = Microsoft.UI.Dispatching.DispatcherQueue;
-#else
-using Windows.UI.Core;
-using Dispatcher = Windows.UI.Core.CoreDispatcher;
-#endif
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BiometryService

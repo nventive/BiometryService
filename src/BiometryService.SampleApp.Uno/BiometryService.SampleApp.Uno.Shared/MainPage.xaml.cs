@@ -29,36 +29,36 @@ using System.Reactive.Concurrency;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
-namespace BiometryService.SampleApp.Uno;
-
-/// <summary>
-/// An empty page that can be used on its own or navigated to within a Frame.
-/// </summary>
-public sealed partial class MainPage : Page
+namespace BiometryService.SampleApp.Uno
 {
-	private readonly IBiometryService _biometryService;
-	private readonly CancellationToken _cancellationToken = CancellationToken.None;
-
-	public MainPage()
+	/// <summary>
+	/// An empty page that can be used on its own or navigated to within a Frame.
+	/// </summary>
+	public sealed partial class MainPage : Page
 	{
-		this.InitializeComponent();
+		private readonly IBiometryService _biometryService;
+		private readonly CancellationToken _cancellationToken = CancellationToken.None;
 
-		// use LAPolicy.DeviceOwnerAuthenticationWithBiometrics for biometrics only with no fallback to passcode/password
-		// use LAPolicy.DeviceOwnerAuthentication for biometrics+watch with fallback to passcode/password
+		public MainPage()
+		{
+			this.InitializeComponent();
+
+			// use LAPolicy.DeviceOwnerAuthenticationWithBiometrics for biometrics only with no fallback to passcode/password
+			// use LAPolicy.DeviceOwnerAuthentication for biometrics+watch with fallback to passcode/password
 #if __IOS__
-		var laContext = new LAContext();
-		laContext.LocalizedReason = "REASON THAT APP WANTS TO USE BIOMETRY :)";
-		laContext.LocalizedFallbackTitle = "FALLBACK";
-		laContext.LocalizedCancelTitle = "CANCEL";
+			var laContext = new LAContext();
+			laContext.LocalizedReason = "REASON THAT APP WANTS TO USE BIOMETRY :)";
+			laContext.LocalizedFallbackTitle = "FALLBACK";
+			laContext.LocalizedCancelTitle = "CANCEL";
 
-		_biometryService = new BiometryService(
-			laContext,
-			"Biometrics_Confirm",
-			LAPolicy.DeviceOwnerAuthentication,
-			App.Instance.LoggerFactory);
+			_biometryService = new BiometryService(
+				laContext,
+				"Biometrics_Confirm",
+				LAPolicy.DeviceOwnerAuthentication,
+				App.Instance.LoggerFactory);
 #endif
 
-		//Note that not all combinations of authenticator types are supported prior to Android 11 (API 30). Specifically, DEVICE_CREDENTIAL alone is unsupported prior to API 30, and BIOMETRIC_STRONG | DEVICE_CREDENTIAL is unsupported on API 28-29
+			//Note that not all combinations of authenticator types are supported prior to Android 11 (API 30). Specifically, DEVICE_CREDENTIAL alone is unsupported prior to API 30, and BIOMETRIC_STRONG | DEVICE_CREDENTIAL is unsupported on API 28-29
 #if __ANDROID__
 		Func<BiometricPrompt.PromptInfo> promptBuilder;
 		if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
@@ -93,100 +93,101 @@ public sealed partial class MainPage : Page
 		_biometryService = new BiometryService(App.Instance.LoggerFactory);
 #endif
 
-		_ = LoadCapabilities(_cancellationToken);
-	}
+			_ = LoadCapabilities(_cancellationToken);
+		}
 
-	private async Task LoadCapabilities(CancellationToken ct)
-	{
-		var capabilities = await _biometryService.GetCapabilities(ct);
+		private async Task LoadCapabilities(CancellationToken ct)
+		{
+			var capabilities = await _biometryService.GetCapabilities(ct);
 
-		BiometryTypeTxt.Text = capabilities.BiometryType.ToString();
-		IsSupportedTxt.Text = capabilities.IsSupported.ToString();
-		IsEnabledTxt.Text = capabilities.IsEnabled.ToString();
-		IsPasscodeSetTxt.Text = capabilities.IsPasscodeSet.ToString();
-	}
+			BiometryTypeTxt.Text = capabilities.BiometryType.ToString();
+			IsSupportedTxt.Text = capabilities.IsSupported.ToString();
+			IsEnabledTxt.Text = capabilities.IsEnabled.ToString();
+			IsPasscodeSetTxt.Text = capabilities.IsPasscodeSet.ToString();
+		}
 
-	private async void AuthenticateButtonClick(object sender, RoutedEventArgs e)
-	{
-		await LoadCapabilities(_cancellationToken);
+		private async void AuthenticateButtonClick(object sender, RoutedEventArgs e)
+		{
+			await LoadCapabilities(_cancellationToken);
 
-		try
-		{
-			await _biometryService.ScanBiometry(_cancellationToken);
-			TxtAuthenticationStatus.Text = "Authentication Passed";
+			try
+			{
+				await _biometryService.ScanBiometry(_cancellationToken);
+				TxtAuthenticationStatus.Text = "Authentication Passed";
+			}
+			catch (BiometryException biometryException)
+			{
+				TxtAuthenticationStatus.Text = ParseBiometryException(biometryException);
+			}
+			catch (Exception ex)
+			{
+				TxtAuthenticationStatus.Text = ex.Message;
+			}
 		}
-		catch (BiometryException biometryException)
-		{
-			TxtAuthenticationStatus.Text = ParseBiometryException(biometryException);
-		}
-		catch (Exception ex)
-		{
-			TxtAuthenticationStatus.Text = ex.Message;
-		}
-	}
 
-	private async void EncryptButtonClick(object sender, RoutedEventArgs e)
-	{
-		// Clear remove output message.
-		TxtRemove.Text = string.Empty;
+		private async void EncryptButtonClick(object sender, RoutedEventArgs e)
+		{
+			// Clear remove output message.
+			TxtRemove.Text = string.Empty;
 
-		await LoadCapabilities(_cancellationToken);
-		try
-		{
-			await _biometryService.Encrypt(_cancellationToken, "Secret", TxtToEncrypt.Text);
-			TxtEncryptionStatus.Text = "Encryption Succeeded";
+			await LoadCapabilities(_cancellationToken);
+			try
+			{
+				await _biometryService.Encrypt(_cancellationToken, "Secret", TxtToEncrypt.Text);
+				TxtEncryptionStatus.Text = "Encryption Succeeded";
+			}
+			catch (BiometryException biometryException)
+			{
+				TxtEncryptionStatus.Text = ParseBiometryException(biometryException);
+			}
+			catch (Exception ex)
+			{
+				TxtEncryptionStatus.Text = ex.Message;
+			}
 		}
-		catch (BiometryException biometryException)
-		{
-			TxtEncryptionStatus.Text = ParseBiometryException(biometryException);
-		}
-		catch (Exception ex)
-		{
-			TxtEncryptionStatus.Text = ex.Message;
-		}
-	}
 
-	private async void DecryptButtonClick(object sender, RoutedEventArgs e)
-	{
-		// Clear remove output message.
-		TxtRemove.Text = string.Empty;
+		private async void DecryptButtonClick(object sender, RoutedEventArgs e)
+		{
+			// Clear remove output message.
+			TxtRemove.Text = string.Empty;
 
-		await LoadCapabilities(_cancellationToken);
-		try
-		{
-			var result = await _biometryService.Decrypt(_cancellationToken, "Secret");
-			TxtDecrypted.Text = result;
+			await LoadCapabilities(_cancellationToken);
+			try
+			{
+				var result = await _biometryService.Decrypt(_cancellationToken, "Secret");
+				TxtDecrypted.Text = result;
+			}
+			catch (BiometryException biometryException)
+			{
+				TxtDecrypted.Text = ParseBiometryException(biometryException);
+			}
+			catch (Exception ex)
+			{
+				TxtDecrypted.Text = ex.Message;
+			}
 		}
-		catch (BiometryException biometryException)
-		{
-			TxtDecrypted.Text = ParseBiometryException(biometryException);
-		}
-		catch (Exception ex)
-		{
-			TxtDecrypted.Text = ex.Message;
-		}
-	}
 
-	private async void RemoveButtonClick(object sender, RoutedEventArgs e)
-	{
-		await LoadCapabilities(_cancellationToken);
-		try
+		private async void RemoveButtonClick(object sender, RoutedEventArgs e)
 		{
-			_biometryService.Remove("Secret");
-			TxtRemove.Text = "Encrypted value removed successfully";
+			await LoadCapabilities(_cancellationToken);
+			try
+			{
+				_biometryService.Remove("Secret");
+				TxtRemove.Text = "Encrypted value removed successfully";
+			}
+			catch (BiometryException biometryException)
+			{
+				TxtRemove.Text = ParseBiometryException(biometryException);
+			}
+			catch (Exception ex)
+			{
+				TxtRemove.Text = ex.Message;
+			}
 		}
-		catch (BiometryException biometryException)
-		{
-			TxtRemove.Text = ParseBiometryException(biometryException);
-		}
-		catch (Exception ex)
-		{
-			TxtRemove.Text = ex.Message;
-		}
-	}
 
-	private string ParseBiometryException(BiometryException e)
-	{
-		return "Reason:" + e.Reason + "\n" + "msg:" + e.Message;
+		private string ParseBiometryException(BiometryException e)
+		{
+			return "Reason:" + e.Reason + "\n" + "msg:" + e.Message;
+		}
 	}
 }
