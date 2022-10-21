@@ -15,7 +15,7 @@ using Windows.Storage;
 namespace BiometryService;
 
 /// <summary>
-/// UWP implementation of <see cref="IBiometryService"/>.
+/// WinUI implementation of <see cref="IBiometryService"/>.
 /// </summary>
 /// <remarks>
 /// This implementation is not fully implementeed.

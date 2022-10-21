@@ -89,7 +89,7 @@ public sealed partial class MainPage : Page
 			App.Instance.LoggerFactory
 		);
 #endif
-#if WINDOWS_UWP
+#if WINDOWS_UWP || WINDOWS
 		_biometryService = new BiometryService(App.Instance.LoggerFactory);
 #endif
 
