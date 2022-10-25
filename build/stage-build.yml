@@ -1,33 +1,38 @@
 ﻿steps:
-## Install .netcore runtime required by GitVersion@5
-- task: UseDotNet@2
+- task: GitVersion/setup@0
   inputs:
-    packageType: 'runtime'
-    version: '2.1.0'
-    installationPath: '$(Agent.ToolsDirectory)/dotnet'
-
-- task: GitVersion@5
+    versionSpec: '5.10.1'
+  displayName: 'Install GitVersion'
+  
+- task: GitVersion/execute@0
   inputs:
-    runtime: 'core'
     useConfigFile: true
-    configFilePath: build/gitversion.yml
+    configFilePath: $(Build.SourcesDirectory)/build/gitversion.yml
   displayName: 'Calculate version'
 
-- task: NuGetToolInstaller@1
-  displayName: 'Install NuGet $(NUGET_VERSION)'
+- task: DotNetCoreCLI@2
+  displayName: 'Install dotnet 6 workloads'
   inputs:
-    versionSpec: $(NUGET_VERSION)
-    checkLatest: false
+    command: 'custom'
+    custom: 'workload'
+    arguments: 'install android ios macos maccatalyst'
 
-- task: NuGetCommand@2
+- task: MSBuild@1
   displayName: 'Restore solution packages'
   inputs:
-    command: restore
     solution: $(Build.SourcesDirectory)/$(SolutionFileName)
-    selectOrConfig: select
-    includeNuGetOrg: true
-    verbosityRestore: Normal
-    noCache: true
+    msbuildLocationMethod: version
+    msbuildVersion: latest
+    msbuildArchitecture: x86
+    msbuildArguments: >
+      /t:restore
+    configuration: $(ApplicationConfiguration)
+    platform: $(ApplicationPlatform)
+    clean: false
+    maximumCpuCount: true
+    restoreNugetPackages: false
+    logProjectEvents: false
+    createLogFile: false
 
 - task: MSBuild@1
   displayName: 'Build solution in $(ApplicationConfiguration) | $(ApplicationPlatform)'
@@ -43,7 +48,9 @@
     restoreNugetPackages: false
     logProjectEvents: false
     createLogFile: false
-    msbuildArguments: /p:PackageVersion=$(GitVersion.SemVer) # Set the version of the packages, will have no effect on application projects (Heads).
+    msbuildArguments: > # Set the version of the packages, will have no effect on application projects (Heads).
+      /p:PackageVersion=$(GitVersion.SemVer) 
+      /p:ContinuousIntegrationBuild=true
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish artifact $(ApplicationConfiguration)'

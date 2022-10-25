@@ -1,20 +1,29 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
+
+#if WINUI
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Dispatching;
+#else
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Core;
-using System;
-using Microsoft.Extensions.Logging;
+#endif
+
 #if __IOS__
 using UIKit;
 using LocalAuthentication;
 #endif
+
 #if __ANDROID__
 using System.Reactive.Concurrency;
 using BiometryService.SampleApp.Uno.Droid;
 using AndroidX.Biometric;
 #endif
-#if WINDOWS_UWP
+
+#if WINDOWS_UWP || WINDOWS
 using System.Reactive.Concurrency;
 #endif
 
@@ -51,37 +60,37 @@ namespace BiometryService.SampleApp.Uno
 
 			//Note that not all combinations of authenticator types are supported prior to Android 11 (API 30). Specifically, DEVICE_CREDENTIAL alone is unsupported prior to API 30, and BIOMETRIC_STRONG | DEVICE_CREDENTIAL is unsupported on API 28-29
 #if __ANDROID__
-			Func<BiometricPrompt.PromptInfo> promptBuilder;
-			if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
-			{
-				promptBuilder = () => new BiometricPrompt.PromptInfo.Builder()
-					.SetTitle("Biometrics SignIn")
-					.SetSubtitle("Biometrics Confirm")
-					//.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricWeak | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin WARNING cannot Encrypt data with this settings
-					.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong) // used for Encrypt decrypt feature for device bellow Android 11
-					.SetNegativeButtonText("Cancel")
-					.Build();
-			}
-			else
-			{
-				promptBuilder = () => new BiometricPrompt.PromptInfo.Builder()
-					.SetTitle("Biometrics SignIn")
-					.SetSubtitle("Biometrics Confirm")
-					// BiometricManager.Authenticators.DeviceCredential == Fallback on secure pin
-					.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong)
-					// Do not set NegativeButtonText if BiometricManager.Authenticators.DeviceCredential is allowed with BiometricManager.Authenticators.BiometricStrong
-					.SetNegativeButtonText("Cancel")
-					.Build();
-			}
+		Func<BiometricPrompt.PromptInfo> promptBuilder;
+		if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
+		{
+			promptBuilder = () => new BiometricPrompt.PromptInfo.Builder()
+				.SetTitle("Biometrics SignIn")
+				.SetSubtitle("Biometrics Confirm")
+				//.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricWeak | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin WARNING cannot Encrypt data with this settings
+				.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong) // used for Encrypt decrypt feature for device bellow Android 11
+				.SetNegativeButtonText("Cancel")
+				.Build();
+		}
+		else
+		{
+			promptBuilder = () => new BiometricPrompt.PromptInfo.Builder()
+				.SetTitle("Biometrics SignIn")
+				.SetSubtitle("Biometrics Confirm")
+				// BiometricManager.Authenticators.DeviceCredential == Fallback on secure pin
+				.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong)
+				// Do not set NegativeButtonText if BiometricManager.Authenticators.DeviceCredential is allowed with BiometricManager.Authenticators.BiometricStrong
+				.SetNegativeButtonText("Cancel")
+				.Build();
+		}
 
-			_biometryService = new BiometryService(
-				MainActivity.Instance,
-				promptBuilder,
-				App.Instance.LoggerFactory
-			);
+		_biometryService = new BiometryService(
+			MainActivity.Instance,
+			promptBuilder,
+			App.Instance.LoggerFactory
+		);
 #endif
-#if WINDOWS_UWP
-			_biometryService = new BiometryService(App.Instance.LoggerFactory);
+#if WINDOWS_UWP || WINDOWS
+		_biometryService = new BiometryService(App.Instance.LoggerFactory);
 #endif
 
 			_ = LoadCapabilities(_cancellationToken);

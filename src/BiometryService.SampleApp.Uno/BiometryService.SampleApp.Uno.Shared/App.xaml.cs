@@ -8,6 +8,16 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+#if WINUI
+using Microsoft.UI.Xaml;
+using LaunchActivatedEventArgs = Microsoft.UI.Xaml.LaunchActivatedEventArgs;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+#else
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -15,6 +25,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+#endif
 
 namespace BiometryService.SampleApp.Uno
 {
@@ -34,7 +45,10 @@ namespace BiometryService.SampleApp.Uno
 			ConfigureFilters(global::Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory);
 
 			this.InitializeComponent();
+
+#if !WINUI
 			this.Suspending += OnSuspending;
+#endif
 		}
 
 		public static App Instance { get; private set; }
@@ -55,9 +69,11 @@ namespace BiometryService.SampleApp.Uno
 			}
 #endif
 
-#if NET5_0 && WINDOWS
-			var window = new Window();
-			window.Activate();
+#if NET5_0_OR_GREATER && WINDOWS
+		var window = new Window();
+		window.Activate();
+#elif WINUI
+		var window = Microsoft.UI.Xaml.Window.Current;
 #else
 			var window = Windows.UI.Xaml.Window.Current;
 #endif
@@ -73,16 +89,18 @@ namespace BiometryService.SampleApp.Uno
 
 				rootFrame.NavigationFailed += OnNavigationFailed;
 
+#if !WINUI
 				if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
 				{
 					//TODO: Load state from previously suspended application
 				}
+#endif
 
 				// Place the frame in the current Window
 				window.Content = rootFrame;
 			}
 
-#if !(NET5_0 && WINDOWS)
+#if !(NET5_0_OR_GREATER && WINDOWS || WINUI)
 			if (e.PrelaunchActivated == false)
 #endif
 			{
@@ -122,49 +140,56 @@ namespace BiometryService.SampleApp.Uno
 			deferral.Complete();
 		}
 
-
 		/// <summary>
 		/// Configures global logging
 		/// </summary>
 		/// <param name="factory"></param>
-		private void ConfigureFilters(ILoggerFactory factory)
+		static void ConfigureFilters(ILoggerFactory factory)
 		{
-			LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
-			{
-				builder.AddConsole();
+			factory
+				.WithFilter(new FilterLoggerSettings
+					{
+					{ "Uno", LogLevel.Warning },
+					{ "Windows", LogLevel.Warning },
 
-				// Generic Xaml events
-				// builder.AddFilter("Windows.UI.Xaml", LogLevel.Debug );
-				// builder.AddFilter("Windows.UI.Xaml.VisualStateGroup", LogLevel.Debug );
-				// builder.AddFilter("Windows.UI.Xaml.StateTriggerBase", LogLevel.Debug );
-				// builder.AddFilter("Windows.UI.Xaml.UIElement", LogLevel.Debug );
-				// builder.AddFilter("Windows.UI.Xaml.FrameworkElement", LogLevel.Trace );
+					// Debug JS interop
+					// { "Uno.Foundation.WebAssemblyRuntime", LogLevel.Debug },
 
-				// Layouter specific messages
-				// builder.AddFilter("Windows.UI.Xaml.Controls", LogLevel.Debug );
-				// builder.AddFilter("Windows.UI.Xaml.Controls.Layouter", LogLevel.Debug );
-				// builder.AddFilter("Windows.UI.Xaml.Controls.Panel", LogLevel.Debug );
+					// Generic Xaml events
+					// { "Windows.UI.Xaml", LogLevel.Debug },
+					// { "Windows.UI.Xaml.VisualStateGroup", LogLevel.Debug },
+					// { "Windows.UI.Xaml.StateTriggerBase", LogLevel.Debug },
+					// { "Windows.UI.Xaml.UIElement", LogLevel.Debug },
 
-				// builder.AddFilter("Windows.Storage", LogLevel.Debug );
+					// Layouter specific messages
+					// { "Windows.UI.Xaml.Controls", LogLevel.Debug },
+					// { "Windows.UI.Xaml.Controls.Layouter", LogLevel.Debug },
+					// { "Windows.UI.Xaml.Controls.Panel", LogLevel.Debug },
+					// { "Windows.Storage", LogLevel.Debug },
 
-				// Binding related messages
-				// builder.AddFilter("Windows.UI.Xaml.Data", LogLevel.Debug );
-				// builder.AddFilter("Windows.UI.Xaml.Data", LogLevel.Debug );
+					// Binding related messages
+					// { "Windows.UI.Xaml.Data", LogLevel.Debug },
 
-				// Binder memory references tracking
-				// builder.AddFilter("Uno.UI.DataBinding.BinderReferenceHolder", LogLevel.Debug );
+					// DependencyObject memory references tracking
+					// { "ReferenceHolder", LogLevel.Debug },
 
-				// RemoteControl and HotReload related
-				// builder.AddFilter("Uno.UI.RemoteControl", LogLevel.Information);
-
-				// Debug JS interop
-				// builder.AddFilter("Uno.Foundation.WebAssemblyRuntime", LogLevel.Debug );
-			});
-
-			global::Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory = LoggerFactory;
-
-#if HAS_UNO
-			global::Uno.UI.Adapter.Microsoft.Extensions.Logging.LoggingAdapter.Initialize();
+					// ListView-related messages
+					// { "Windows.UI.Xaml.Controls.ListViewBase", LogLevel.Debug },
+					// { "Windows.UI.Xaml.Controls.ListView", LogLevel.Debug },
+					// { "Windows.UI.Xaml.Controls.GridView", LogLevel.Debug },
+					// { "Windows.UI.Xaml.Controls.VirtualizingPanelLayout", LogLevel.Debug },
+					// { "Windows.UI.Xaml.Controls.NativeListViewBase", LogLevel.Debug },
+					// { "Windows.UI.Xaml.Controls.ListViewBaseSource", LogLevel.Debug }, //iOS
+					// { "Windows.UI.Xaml.Controls.ListViewBaseInternalContainer", LogLevel.Debug }, //iOS
+					// { "Windows.UI.Xaml.Controls.NativeListViewBaseAdapter", LogLevel.Debug }, //Android
+					// { "Windows.UI.Xaml.Controls.BufferViewCache", LogLevel.Debug }, //Android
+					// { "Windows.UI.Xaml.Controls.VirtualizingPanelGenerator", LogLevel.Debug }, //WASM
+					}
+				)
+#if DEBUG
+				.AddConsole(LogLevel.Debug);
+#else
+				.AddConsole(LogLevel.Information);
 #endif
 		}
 	}

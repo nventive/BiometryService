@@ -8,11 +8,11 @@
 			you need to make sure that the version provided here matches https://github.com/onovotny/MSBuildSdkExtras/blob/master/Source/MSBuild.Sdk.Extras/DefaultItems/ImplicitPackages.targets#L11.
 			This is not an issue when libraries are referenced through nuget packages. See https://github.com/unoplatform/uno/issues/446 for more details.
 			-->
-      <Version>6.2.9</Version>
+      <Version>6.2.12</Version>
     </PackageReference>
     <PackageReference Include="Uno.Core" Version="4.0.1" />
-    <PackageReference Include="Uno.UI" Version="4.0.7" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
+    <PackageReference Include="Uno.UI" Version="4.5.14" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="1.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Filter" Version="1.1.1" />
   </ItemGroup>
   <PropertyGroup>
@@ -127,7 +127,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
-    <ProjectReference Include="..\..\BiometryService\BiometryService.csproj">
+    <ProjectReference Include="..\..\BiometryService.Uno\BiometryService.Uno.csproj">
       <Project>{38d70859-8ca3-4e16-b696-c5fb404b3d82}</Project>
       <Name>BiometryService</Name>
     </ProjectReference>
@@ -139,7 +139,6 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <None Include="BiometryService.SampleApp.Uno.UWP_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
