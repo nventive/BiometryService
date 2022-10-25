@@ -20,7 +20,7 @@ namespace BiometryService;
 /// <remarks>
 /// This implementation is not fully implementeed.
 /// </remarks>
-public class BiometryService : IBiometryService
+public sealed class BiometryService : IBiometryService
 {
 	private readonly IPropertySet _keys;
 	private readonly ILogger _logger;
@@ -40,7 +40,7 @@ public class BiometryService : IBiometryService
 	/// <inheritdoc/>
 	public async Task<BiometryCapabilities> GetCapabilities(CancellationToken ct)
 	{
-		bool windowsHelloAvailable = await KeyCredentialManager.IsSupportedAsync().AsTask(ct);
+		var windowsHelloAvailable = await KeyCredentialManager.IsSupportedAsync().AsTask(ct);
 		return new BiometryCapabilities(windowsHelloAvailable ? BiometryType.Fingerprint : BiometryType.None, windowsHelloAvailable, true);
 	}
 
@@ -80,7 +80,7 @@ public class BiometryService : IBiometryService
 
 		try
 		{
-			using (Aes aes = Aes.Create())
+			using (var aes = Aes.Create())
 			{
 				aes.BlockSize = 128;
 				aes.KeySize = 256;

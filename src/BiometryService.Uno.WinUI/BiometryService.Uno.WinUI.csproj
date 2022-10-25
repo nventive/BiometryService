@@ -1,6 +1,6 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.44">
   <PropertyGroup>
-    <TargetFrameworks>net6.0-ios;net6.0-maccatalyst;net6.0-macos;net6.0-android;net6.0-windows10.0.18362;netstandard2.0;</TargetFrameworks>
+    <TargetFrameworks>net6.0-ios;net6.0-android;net6.0-windows10.0.18362;netstandard2.0;</TargetFrameworks>
     <LangVersion>10.0</LangVersion>
     <RootNamespace>BiometryService</RootNamespace>
     <Authors>nventive</Authors>
@@ -32,10 +32,10 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net6.0-android'">
-    <PackageReference Include="Xamarin.AndroidX.Biometric" Version="1.1.0.10" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.5.1" />
-    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.9.0" />
-    <PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.2.1.7" />
+    <PackageReference Include="Xamarin.AndroidX.Biometric" Version="1.1.0.11" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.5.1.1" />
+    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.9.0.1" />
+    <PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.2.1.8" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net6.0-windows10.0.18362'">

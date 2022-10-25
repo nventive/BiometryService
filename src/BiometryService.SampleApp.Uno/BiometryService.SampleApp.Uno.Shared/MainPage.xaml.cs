@@ -13,7 +13,6 @@ using Windows.UI.Core;
 #endif
 
 #if __IOS__
-using UIKit;
 using LocalAuthentication;
 #endif
 
@@ -46,16 +45,19 @@ namespace BiometryService.SampleApp.Uno
 			// use LAPolicy.DeviceOwnerAuthenticationWithBiometrics for biometrics only with no fallback to passcode/password
 			// use LAPolicy.DeviceOwnerAuthentication for biometrics+watch with fallback to passcode/password
 #if __IOS__
-			var laContext = new LAContext();
-			laContext.LocalizedReason = "REASON THAT APP WANTS TO USE BIOMETRY :)";
-			laContext.LocalizedFallbackTitle = "FALLBACK";
-			laContext.LocalizedCancelTitle = "CANCEL";
+			var laContext = new LAContext
+			{
+				LocalizedReason = "REASON THAT APP WANTS TO USE BIOMETRY :)",
+				LocalizedFallbackTitle = "FALLBACK",
+				LocalizedCancelTitle = "CANCEL"
+			};
 
 			_biometryService = new BiometryService(
 				laContext,
 				"Biometrics_Confirm",
 				LAPolicy.DeviceOwnerAuthentication,
-				App.Instance.LoggerFactory);
+				App.Instance.LoggerFactory
+			);
 #endif
 
 			//Note that not all combinations of authenticator types are supported prior to Android 11 (API 30). Specifically, DEVICE_CREDENTIAL alone is unsupported prior to API 30, and BIOMETRIC_STRONG | DEVICE_CREDENTIAL is unsupported on API 28-29
@@ -89,6 +91,7 @@ namespace BiometryService.SampleApp.Uno
 			App.Instance.LoggerFactory
 		);
 #endif
+
 #if WINDOWS_UWP || WINDOWS
 		_biometryService = new BiometryService(App.Instance.LoggerFactory);
 #endif
