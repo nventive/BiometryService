@@ -3,27 +3,27 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiometryService.Uno", "Src\BiometryService.Uno\BiometryService.Uno.csproj", "{38D70859-8CA3-4E16-B696-C5FB404B3D82}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiometryService.Uno", "src\BiometryService.Uno\BiometryService.Uno.csproj", "{38D70859-8CA3-4E16-B696-C5FB404B3D82}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{E22802DE-B587-470A-B242-86A8E362FD4F}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "BiometryService.SampleApp.Uno.Shared", "Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.shproj", "{6279C845-92F8-4333-AB99-3D213163593C}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "BiometryService.SampleApp.Uno.Shared", "src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.shproj", "{6279C845-92F8-4333-AB99-3D213163593C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiometryService.SampleApp.Uno.iOS", "Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.iOS\BiometryService.SampleApp.Uno.iOS.csproj", "{2B4DC5A4-BFD3-4C27-9BF9-51C2015926E4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiometryService.SampleApp.Uno.iOS", "src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.iOS\BiometryService.SampleApp.Uno.iOS.csproj", "{2B4DC5A4-BFD3-4C27-9BF9-51C2015926E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiometryService.SampleApp.Uno.Droid", "Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Droid\BiometryService.SampleApp.Uno.Droid.csproj", "{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiometryService.SampleApp.Uno.Droid", "src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Droid\BiometryService.SampleApp.Uno.Droid.csproj", "{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiometryService.SampleApp.Uno.UWP", "Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.UWP\BiometryService.SampleApp.Uno.UWP.csproj", "{91E2F2A0-0862-4291-B756-7A14DF3F277A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiometryService.SampleApp.Uno.UWP", "src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.UWP\BiometryService.SampleApp.Uno.UWP.csproj", "{91E2F2A0-0862-4291-B756-7A14DF3F277A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Library", "Library", "{986F4BC6-3A85-44B3-9365-E9D36E3D0215}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiometryService.Uno.WinUI", "Src\BiometryService.Uno.WinUI\BiometryService.Uno.WinUI.csproj", "{46578837-8751-498E-89F1-8E4F739D66C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiometryService.Uno.WinUI", "src\BiometryService.Uno.WinUI\BiometryService.Uno.WinUI.csproj", "{46578837-8751-498E-89F1-8E4F739D66C9}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Shared", "Src\Shared\Shared.shproj", "{8EF2B01A-6C62-4201-A8A9-8E1207662B9C}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "BiometryService.Shared", "src\BiometryService.Shared\BiometryService.Shared.shproj", "{8EF2B01A-6C62-4201-A8A9-8E1207662B9C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiometryService.SampleApp.Uno.WinUI", "Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.WinUI\BiometryService.SampleApp.Uno.WinUI.csproj", "{12188A8F-EB24-4DCA-A090-96446944D598}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiometryService.SampleApp.Uno.WinUI", "src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.WinUI\BiometryService.SampleApp.Uno.WinUI.csproj", "{12188A8F-EB24-4DCA-A090-96446944D598}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiometryService.SampleApp.Uno.Mobile", "Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Mobile\BiometryService.SampleApp.Uno.Mobile.csproj", "{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BiometryService.SampleApp.Uno.Mobile", "src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Mobile\BiometryService.SampleApp.Uno.Mobile.csproj", "{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -849,12 +849,12 @@ Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{12188a8f-eb24-4dca-a090-96446944d598}*SharedItemsImports = 5
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{2b4dc5a4-bfd3-4c27-9bf9-51c2015926e4}*SharedItemsImports = 4
-		Src\Shared\Shared.projitems*{38d70859-8ca3-4e16-b696-c5fb404b3d82}*SharedItemsImports = 5
-		Src\Shared\Shared.projitems*{46578837-8751-498e-89f1-8e4f739d66c9}*SharedItemsImports = 5
+		src\BiometryService.Shared\Shared.projitems*{38d70859-8ca3-4e16-b696-c5fb404b3d82}*SharedItemsImports = 5
+		src\BiometryService.Shared\Shared.projitems*{46578837-8751-498e-89f1-8e4f739d66c9}*SharedItemsImports = 5
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{6279c845-92f8-4333-ab99-3d213163593c}*SharedItemsImports = 13
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{8de2a70f-51ef-4023-96c5-f51b4ae6b882}*SharedItemsImports = 4
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{8e44c703-a3d8-4b94-b2f7-3fa55d0429ab}*SharedItemsImports = 5
-		Src\Shared\Shared.projitems*{8ef2b01a-6c62-4201-a8a9-8e1207662b9c}*SharedItemsImports = 13
+		src\BiometryService.Shared\Shared.projitems*{8ef2b01a-6c62-4201-a8a9-8e1207662b9c}*SharedItemsImports = 13
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{91e2f2a0-0862-4291-b756-7a14df3f277a}*SharedItemsImports = 4
 	EndGlobalSection
 EndGlobal
