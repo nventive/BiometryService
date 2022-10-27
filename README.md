@@ -6,7 +6,7 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-This library offers a simple contract to use the biometry across Android, iOS and UWP.
+This library offers a simple contract to use the biometry across Android, iOS, UWP & WinUI.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
@@ -21,13 +21,12 @@ The biometryService Interface 'IBiometryService' Implement the following method 
 
 As of now, this is the list of features available per platform.
 
-
-| Feature          | iOS | Android | UWP  |
-| ---------------- | --- | ------- | ---- |
-| GetCapability    | x   | x       | x    |
-| ValidateIdentity | x   | x       | Mock |
-| Encrypt          | x   | x       | Mock |
-| Decrypt          | x   | x       | Mock |
+| Feature          | iOS (Xamarin) | iOS (MAUI) | Android (Xamarin) | Android (MAUI) | UWP  | WinUI |
+| ---------------- | ------------- | -----------| ----------------- | -------------- | ---- | ----- |
+| GetCapability    | x             | x          | x                 | x              | x    | x     |
+| ValidateIdentity | x             | x          | x                 | x              | Mock | Mock  |
+| Encrypt          | x             | x          | x                 | x              | Mock | Mock  |
+| Decrypt          | x             | x          | x                 | x              | Mock | Mock  |
 
 ## Getting Started
 
@@ -41,14 +40,14 @@ A small sample is available as a playground.
 
 An example of instantiation as follow with the fallback to the pin code with some text descriptions to display for the user.
 
-```
+``` cs
 var options = new BiometryOptions();
 options.LocalizedReasonBodyText = "REASON THAT APP WANTS TO USE BIOMETRY";
 options.LocalizedFallbackButtonText = "FALLBACK";
 options.LocalizedCancelButtonText = "CANCEL";
 
-// use LAPolicy.DeviceOwnerAuthenticationWithBiometrics for biometrics only with no fallback to passcode/password
-// use LAPolicy.DeviceOwnerAuthentication for biometrics+watch with fallback to passcode/password
+// Use LAPolicy.DeviceOwnerAuthenticationWithBiometrics for biometrics only with no fallback to passcode/password.
+// Use LAPolicy.DeviceOwnerAuthentication for biometrics+watch with fallback to passcode/password.
 _biometryService = new BiometryService(options, async ct => "Biometrics_Confirm", LAPolicy.DeviceOwnerAuthentication);
 ```
 
@@ -60,23 +59,32 @@ Encrypt/Decrypt method are only available with the following configuration `.Set
 
 An example of instantiation is as follow, with the fallback to the pin code with some text descriptions to display for the user.
 
-```
+``` cs
 _biometryService = new BiometryService(
     MainActivity.Instance,
     CoreDispatcher.Main,
-    ct => Task.FromResult(new BiometricPrompt.PromptInfo.Builder()
-    .SetTitle("Biometrics SignIn")
-    .SetSubtitle("Biometrics Confirm")
-    .SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin
-    .SetNegativeButtonText("Cancel")
-    .Build()));
+    ct => Task.FromResult(
+        new BiometricPrompt.PromptInfo.Builder()
+            .SetTitle("Biometrics SignIn")
+            .SetSubtitle("Biometrics Confirm")
+
+            // Fallback on secure pin.
+            .SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong | BiometricManager.Authenticators.DeviceCredential)
+
+            .SetNegativeButtonText("Cancel")
+            .Build()
+    )
+);
 ```
 
 ## Methods
 
+---
+
 ### GetGapabilites
 
 This method helps to check the hardware status on the device.
+
 `_biometryService.GetCapabilities();`
 
 It will return a struct `BiometryCapabilities` with the detailled device configuration.
@@ -90,7 +98,6 @@ It will return a struct `BiometryCapabilities` with the detailled device configu
 | Fallback PIN | x                | x       | x       |
 
 #### Android
-
 
 | Capability   | ValidateIdentity | Decrypt | Encrypt |
 | ------------ | ---------------- | ------- | ------- |
@@ -122,12 +129,12 @@ In case of error, `SecurityException` is thrown.
 A new `CryptoObject` from `AndroidX.Biometric` is created with a key as a parameter. Then the data will be encrypted and presented to the `biometricPrompt` manager.
 The final step will encode the data in base64 and store it in App with the shared preferences.
 
-
 ### Decrypt
 
 The following method does specific actions according to the platform targeted.
 
 `await _biometryService.Decrypt(ct, "Secret");`
+
 
 #### iOS
 
