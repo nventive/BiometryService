@@ -351,8 +351,8 @@ namespace BiometryService
 #else
 				await _dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
 #endif
-                {
-                    try
+				{
+					try
 					{
 						if (crypto == null)
 						{
@@ -457,7 +457,12 @@ namespace BiometryService
 			keygen.Init(new KeyGenParameterSpec.Builder(keyName, KeyStorePurpose.Encrypt | KeyStorePurpose.Decrypt)
 				.SetBlockModes(KeyProperties.BlockModeCbc)
 				.SetEncryptionPaddings(KeyProperties.EncryptionPaddingPkcs7)
-				.SetUserAuthenticationRequired(true)
+
+				/* .SetUserAuthenticationRequired(true)
+				 * This doesn't work on Android 13 (API 33). Use line below instead.
+				 * https://developer.android.com/training/articles/keystore#UserAuthentication */
+
+				.SetUserAuthenticationParameters(0, (int)KeyPropertiesAuthType.BiometricStrong)
 				.Build()
 			);
 
