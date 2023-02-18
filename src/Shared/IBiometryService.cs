@@ -29,25 +29,25 @@ namespace BiometryService
 		Task ScanBiometry(CancellationToken ct);
 
 		/// <summary>
-		/// Encrypts the value and stores it into the platform secure storage with the given <paramref name="key"/>.
+		/// Encrypts the value and stores it into the platform secure storage with the given <paramref name="keyName"/>.
 		/// </summary>
 		/// <param name="ct"><see cref="CancellationToken" />.</param>
-		/// <param name="key">The name of the Key.</param>
-		/// <param name="value">The value to be encrypt.</param>
-		Task Encrypt(CancellationToken ct, string key, string value);
+		/// <param name="keyName">The name of the key.</param>
+		/// <param name="keyValue">The value to be encrypt.</param>
+		Task Encrypt(CancellationToken ct, string keyName, string keyValue);
 
 		/// <summary>
-		/// Decrypts and gets the data associated to the given <paramref name="key"/>.
+		/// Decrypts and gets the data associated to the given <paramref name="keyName"/>.
 		/// </summary>
 		/// <param name="ct"><see cref="CancellationToken" />.</param>
-		/// <param name="key">The name of the Key.</param>
+		/// <param name="keyName">The name of the Key.</param>
 		/// <returns>The decrypted data associated to the key.</returns>
-		Task<string> Decrypt(CancellationToken ct, string key);
+		Task<string> Decrypt(CancellationToken ct, string keyName);
 
 		/// <summary>
 		/// Removes the ecrypted value in the platform secure storage.
 		/// </summary>
-		/// <param name="key"></param>
-		void Remove(string key);
+		/// <param name="keyName"></param>
+		void Remove(string keyName);
 	}
 }

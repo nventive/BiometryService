@@ -25,7 +25,7 @@ namespace BiometryService
 	/// </summary>
 	public class BiometryService : IBiometryService
 	{
-		private const string ANDROID_KEYSTORE = "AndroidKeyStore"; //Android constant, cannot be changed
+		private const string ANDROID_KEYSTORE = "AndroidKeyStore"; // Android constant, cannot be changed.
 		private const string CIPHER_NAME = "AES/CBC/PKCS7Padding";
 		private const string PREFERENCE_NAME = "BiometricPreferences";
 
@@ -95,7 +95,7 @@ namespace BiometryService
 			}
 
 			var capabilites = await GetCapabilities(ct);
-			if (capabilites.IsEnabled && capabilites.IsSupported)
+			if (capabilites.IsEnabled & capabilites.IsSupported)
 			{
 				var crypto = CreateCryptoObject(keyName);
 				var result = await AuthenticateBiometry(ct, crypto);
@@ -132,19 +132,20 @@ namespace BiometryService
 		}
 
 		/// <inheritdoc/>
-		public async Task<string> Decrypt(CancellationToken ct, string key)
+		public async Task<string> Decrypt(CancellationToken ct, string keyName)
 		{
 			if (_logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug($"Decrypting the fingerprint for the key '{key}'.");
+				_logger.LogDebug($"Decrypting the fingerprint for the key '{keyName}'.");
 			}
 
 			var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
-			var storedData = sharedpref.GetString(key, null);
+			var storedData = sharedpref.GetString(keyName, null);
 
+			// TODO: Voir debug la behavior
 			if (storedData == null)
 			{
-				throw new BiometryException(BiometryExceptionReason.Failed, "Encrypted values could not be found. It may have been removed.");
+				throw new BiometryException(BiometryExceptionReason.KeyNotFound, "Encrypted values could not be found. It may have been removed.");
 			}
 
 			byte[] data = Base64.Decode(storedData, Base64Flags.NoWrap);
@@ -167,23 +168,23 @@ namespace BiometryService
 				data.Length - 16
 			);
 
-			var crypto = GetCryptoObject(key, iv);
+			var crypto = GetCryptoObject(keyName, iv);
 			var result = await AuthenticateBiometry(ct, crypto);
 			var decryptedData = result.CryptoObject.Cipher.DoFinal(buffer);
 
 			if (_logger.IsEnabled(LogLevel.Information))
 			{
-				_logger.LogInformation($"Succcessfully decrypted the fingerprint for the key '{key}'.");
+				_logger.LogInformation($"Succcessfully decrypted the fingerprint for the key '{keyName}'.");
 			}
 
 			return Encoding.ASCII.GetString(decryptedData);
 		}
 
 		/// <inheritdoc/>
-		public void Remove(string key)
+		public void Remove(string keyName)
 		{
 			var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
-			sharedpref.Edit().Remove(key).Apply();
+			sharedpref.Edit().Remove(keyName).Apply();
 		}
 
 		private async Task<BiometricPrompt.AuthenticationResult> AuthenticateBiometry(CancellationToken ct, BiometricPrompt.CryptoObject crypto = null)
@@ -312,6 +313,7 @@ namespace BiometryService
 				.SetBlockModes(KeyProperties.BlockModeCbc)
 				.SetEncryptionPaddings(KeyProperties.EncryptionPaddingPkcs7)
 				.SetUserAuthenticationRequired(true)
+				.SetInvalidatedByBiometricEnrollment(true) // https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.Builder#setInvalidatedByBiometricEnrollment(boolean)
 				.Build()
 			);
 
@@ -348,7 +350,7 @@ namespace BiometryService
 			}
 			else
 			{
-				throw new BiometryException(BiometryExceptionReason.Failed, $"The symmetric pair associated to {keyName} to decrypt has been lost.");
+				throw new BiometryException(BiometryExceptionReason.KeyNotFound, $"The symmetric pair associated to {keyName} to decrypt has been lost.");
 			}
 		}
 

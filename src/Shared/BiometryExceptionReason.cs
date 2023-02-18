@@ -29,6 +29,12 @@
 		/// The device has been locked from using his biometrics.
 		/// Due mostly to too many attempts.
 		/// </summary>
-		Locked
+		Locked,
+
+		/// <summary>
+		/// Biometric information has changed (E.g. Touch ID or Face ID has changed).
+		/// User have to set up biometric authentication again.
+		/// </summary>
+		KeyNotFound
 	}
 }

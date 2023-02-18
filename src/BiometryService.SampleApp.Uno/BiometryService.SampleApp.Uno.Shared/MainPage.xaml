@@ -7,14 +7,14 @@
 	  xmlns:ios="http://uno.ui/ios"
 	  mc:Ignorable="d ios">
 
-	<Grid>
+	<Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="*" />
 		</Grid.RowDefinitions>
 
 		<CommandBar Content="Biometric Authentication"
-					ios:Margin="0,20,0,0" />
+					ios:Margin="0,40,0,0" />
 
 		<ScrollViewer Grid.Row="1">
 			<StackPanel Margin="16">
