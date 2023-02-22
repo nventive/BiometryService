@@ -849,6 +849,7 @@ Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{12188a8f-eb24-4dca-a090-96446944d598}*SharedItemsImports = 5
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{2b4dc5a4-bfd3-4c27-9bf9-51c2015926e4}*SharedItemsImports = 4
+		src\BiometryService.Uno.Shared\BiometryService.Uno.Shared.projitems*{46578837-8751-498e-89f1-8e4f739d66c9}*SharedItemsImports = 5
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{6279c845-92f8-4333-ab99-3d213163593c}*SharedItemsImports = 13
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{8de2a70f-51ef-4023-96c5-f51b4ae6b882}*SharedItemsImports = 4
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{8e44c703-a3d8-4b94-b2f7-3fa55d0429ab}*SharedItemsImports = 5
