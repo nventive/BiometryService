@@ -12,7 +12,7 @@
     <PackageTags>biometry;mvvm;maui;winui;ios;android</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/nventive/BiometryService</PackageProjectUrl>
-    <DefineConstants>$(DefineConstants);WINUI</DefineConstants>
+    <DefineConstants Condition="'$(TargetFramework)'=='net6.0-windows10.0.18362'">$(DefineConstants);__WINDOWS__</DefineConstants>
 
     <!-- Needed for Source Link support -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

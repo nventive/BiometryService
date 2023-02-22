@@ -1,4 +1,4 @@
-﻿#if WINDOWS
+﻿#if __WINDOWS__
 using System;
 using System.IO;
 using System.Reactive.Linq;
@@ -18,12 +18,12 @@ namespace BiometryService;
 /// WinUI implementation of <see cref="IBiometryService"/>.
 /// </summary>
 /// <remarks>
-/// This implementation is not fully implementeed.
+/// This implementation is not fully implemented.
 /// </remarks>
-public class BiometryService : IBiometryService
+public sealed class BiometryService : IBiometryService
 {
-	private readonly IPropertySet _keys;
 	private readonly ILogger _logger;
+	private readonly IPropertySet _keys;
 	private readonly SemaphoreSlim _semaphore;
 
 	/// <summary>
@@ -37,14 +37,14 @@ public class BiometryService : IBiometryService
 		_semaphore = new SemaphoreSlim(1, 1);
 	}
 
-	/// <inheritdoc/>
+	/// <inheritdoc />
 	public async Task<BiometryCapabilities> GetCapabilities(CancellationToken ct)
 	{
-		bool windowsHelloAvailable = await KeyCredentialManager.IsSupportedAsync().AsTask(ct);
+		var windowsHelloAvailable = await KeyCredentialManager.IsSupportedAsync().AsTask(ct);
 		return new BiometryCapabilities(windowsHelloAvailable ? BiometryType.Fingerprint : BiometryType.None, windowsHelloAvailable, true);
 	}
 
-	/// <inheritdoc/>
+	/// <inheritdoc />
 	public async Task ScanBiometry(CancellationToken ct)
 	{
 		if (_logger.IsEnabled(LogLevel.Debug))
@@ -60,7 +60,7 @@ public class BiometryService : IBiometryService
 		}
 	}
 
-	/// <inheritdoc/>
+	/// <inheritdoc />
 	public async Task Encrypt(CancellationToken ct, string key, string value)
 	{
 		if (_logger.IsEnabled(LogLevel.Debug))
@@ -71,7 +71,7 @@ public class BiometryService : IBiometryService
 		ValidateProperty(key, nameof(key));
 		ValidateProperty(key, nameof(value));
 
-		if (!(await KeyCredentialManager.IsSupportedAsync()))
+		if (!await KeyCredentialManager.IsSupportedAsync())
 		{
 			throw new BiometryException(BiometryExceptionReason.Unavailable, "Biometry not supported.");
 		}
@@ -80,7 +80,7 @@ public class BiometryService : IBiometryService
 
 		try
 		{
-			using (Aes aes = Aes.Create())
+			using (var aes = Aes.Create())
 			{
 				aes.BlockSize = 128;
 				aes.KeySize = 256;
@@ -140,6 +140,12 @@ public class BiometryService : IBiometryService
 		}
 	}
 
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="propertyValue"></param>
+	/// <param name="propertyName"></param>
+	/// <exception cref="ArgumentNullException"></exception>
 	private void ValidateProperty(string propertyValue, string propertyName)
 	{
 		if (string.IsNullOrEmpty(propertyValue))

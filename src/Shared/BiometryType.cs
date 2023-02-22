@@ -1,30 +1,29 @@
 ﻿using System;
 
-namespace BiometryService
+namespace BiometryService;
+
+/// <summary>
+/// Defines the type of biometry that is available to the device.
+/// </summary>
+/// <remarks>
+/// It is technically possible that a device has multiple biometric available.
+/// That's the reason why this enum has <see cref="FlagsAttribute"/>.
+/// </remarks>
+[Flags]
+public enum BiometryType : byte
 {
 	/// <summary>
-	/// Defines the type of biometry that is available to the device.
+	///	No biometric identifier.
 	/// </summary>
-	/// <remarks>
-	/// It is technically possible that a device has multiple biometric available.
-	/// That's the reason why this enum has <see cref="FlagsAttribute"/>.
-	/// </remarks>
-	[Flags]
-	public enum BiometryType : byte
-	{
-		/// <summary>
-		///	No biometric identifier.
-		/// </summary>
-		None = 0,
+	None = 0,
 
-		/// <summary>
-		///	The device has a fingerprint biometric.
-		/// </summary>
-		Fingerprint = 1,
+	/// <summary>
+	///	The device has a fingerprint biometric.
+	/// </summary>
+	Fingerprint = 1,
 
-		/// <summary>
-		///	The device has a face biometric.
-		/// </summary>
-		Face = 2,
-	}
+	/// <summary>
+	///	The device has a face biometric.
+	/// </summary>
+	Face = 2,
 }

@@ -15,8 +15,6 @@ namespace BiometryService;
 /// </summary>
 public sealed class BiometryService : IBiometryService
 {
-	private readonly LAContext _laContext;
-
 	/// <summary>
 	/// User facing description of the kind of authentication that the application is trying to perform.
 	/// </summary>
@@ -24,6 +22,8 @@ public sealed class BiometryService : IBiometryService
 	/// Set this value to a string that will be displayed to the user when the authentication takes place for the item to give the user some context for the request.
 	/// </remarks>
 	private readonly string _useOperationPrompt;
+
+	private readonly LAContext _laContext;
 
 	/// <summary>
 	/// Authentication policies.
@@ -37,19 +37,19 @@ public sealed class BiometryService : IBiometryService
 	/// <summary>
 	/// Initializes a new instance of the <see cref="BiometryService" /> class.
 	/// </summary>
-	/// <param name="laContext"><see cref="LAContext" />.</param>
 	/// <param name="useOperationPrompt">Biometry user facing description.</param>
+	/// <param name="laContext"><see cref="LAContext" />.</param>
 	/// <param name="localAuthenticationPolicy"><see cref="LAPolicy"/>.</param>
 	/// <param name="loggerFactory"><see cref="ILoggerFactory"/>.</param>
 	public BiometryService(
-		LAContext laContext,
 		string useOperationPrompt,
+		LAContext laContext = null,
 		LAPolicy localAuthenticationPolicy = LAPolicy.DeviceOwnerAuthentication,
 		ILoggerFactory loggerFactory = null
 	)
 	{
-		_laContext = laContext;
 		_useOperationPrompt = useOperationPrompt;
+		_laContext = laContext ?? new LAContext();
 		_localAuthenticationPolicy = localAuthenticationPolicy;
 		_logger = loggerFactory?.CreateLogger<IBiometryService>() ?? NullLogger<IBiometryService>.Instance;
 	}
@@ -87,9 +87,19 @@ public sealed class BiometryService : IBiometryService
 	/// <inheritdoc/>
 	public async Task ScanBiometry(CancellationToken ct)
 	{
+		if (_logger.IsEnabled(LogLevel.Debug))
+		{
+			_logger.LogDebug("Scanning biometry.");
+		}
+
 		if (_laContext.BiometryType is LABiometryType.FaceId)
 		{
-			// Verify that Info.plist file contains NSFaceIDUsageDescription (key/value) otherwise the application will crash.
+			if (_logger.IsEnabled(LogLevel.Trace))
+			{
+				_logger.LogTrace("Checks that `Info.plist` file contains NSFaceIDUsageDescription.");
+			}
+
+			// Checks that Info.plist file contains NSFaceIDUsageDescription (key/value) otherwise the application will crash.
 			var faceIDUsageDescription = ((NSString)NSBundle.MainBundle.InfoDictionary["NSFaceIDUsageDescription"])?.ToString();
 			if (string.IsNullOrEmpty(faceIDUsageDescription))
 			{
@@ -104,53 +114,88 @@ public sealed class BiometryService : IBiometryService
 		var (_, laError) = await _laContext.EvaluatePolicyAsync(_localAuthenticationPolicy, _laContext.LocalizedReason);
 		if (laError is not null)
 		{
+			var reason = BiometryExceptionReason.Failed;
+			var message = string.Empty;
+
 			switch (laError.Code)
 			{
-				case 0:
-					break;
+				case -2: // User cancelled.
+				case -4: // System cancelled.
+				case -9: // Application cancelled.
+					throw new OperationCanceledException();
+
+				// The user failed to provide valid credentials.
 				case -1:
-					// user failed auth; this case happens after they failed multiple attempts and also failed fallback if that's an option
-					throw new BiometryException(BiometryExceptionReason.Failed, "");
-				case -2:
-					// user cancelled
-					throw new OperationCanceledException();
+					message = "The user failed to provide valid credentials.";
+					break;
+
+				// The user tapped the fallback button in the authentication dialog, but no fallback is available for the authentication policy.
+				// Only applies to LAPolicy.DeviceOwnerAuthenticationWithBiometrics.
 				case -3:
-					// user attempted to fallback to passcode/password, but that's not an option
-					// only applies to LAPolicy.DeviceOwnerAuthenticationWithBiometrics
-					throw new BiometryException(BiometryExceptionReason.Failed, "");
-				case -4:
-					// system cancelled
-					throw new OperationCanceledException();
+					message = "No fallback is available for the authentication policy";
+					break;
+
+				// A passcode isn’t set on the device.
+				// This case should not happen because callers of this method should pre-check for this.
 				case -5:
-					// passcode/password not set
-					// this case should not happen because callers of this private method should pre-check for this
-					throw new BiometryException(BiometryExceptionReason.PasscodeNeeded, "Passcode is not set on the device.");
+					reason = BiometryExceptionReason.PasscodeNeeded;
+					message = "A passcode isn’t set on the device.";
+					break;
+
+				// Biometry is not available on the device.
+				// This case should not happen because callers of this method should pre-check for this.
 				case -6:
-					// biometrics not available
-					// this case should not happen because callers of this private method should pre-check for this
-					throw new BiometryException(BiometryExceptionReason.Unavailable, "Biometrics is not available (No hardware support or TouchId/FaceId has been disabled for the application).");
+					reason = BiometryExceptionReason.Unavailable;
+					message = "Biometrics is not available (No hardware support or TouchId/FaceId has been disabled for the application).";
+					break;
+
+				// The user has no enrolled biometric identities.
+				// This case should not happen because callers of this method should pre-check for this.
 				case -7:
-					// biometrics not enrolled
-					// this case should not happen because callers of this private method should pre-check for this
-					throw new BiometryException(BiometryExceptionReason.NotEnrolled, "Biometrics is not enrolled (TouchId/FaceId was not added).");
+					reason = BiometryExceptionReason.NotEnrolled;
+					message = "Biometrics is not enrolled (TouchId/FaceId was not added).";
+					break;
+
+				// Biometry is locked because there were too many failed attempts.
+				// A passcode is now required to unlock biometry.
+				// Try the LAPolicy.DeviceOwnerAuthentication instead to allow use of a passcode.
+				// Only applies to LAPolicy.DeviceOwnerAuthenticationWithBiometrics.
 				case -8:
-					// user failed too many attempts for biometry and is now locked out from using biometry in the future until passcode/password is provided
-					// Only applies to LAPolicy.DeviceOwnerAuthenticationWithBiometrics
-					throw new BiometryException(BiometryExceptionReason.Locked, "");
-				case -9:
-					// app cancelled
-					throw new OperationCanceledException();
-				case -10:
-					// invalidated LAContext; this case can happen when LAContext.Invalidate() was called
-					throw new BiometryException(BiometryExceptionReason.Failed, "");
-				case -11: // No paired Apple Watch is available. Only applies when using LAPolicy.DeviceOwnerAuthenticationWithWatch.
-					throw new BiometryException(BiometryExceptionReason.Failed, "No paired Apple Watch is available.");
-				case -1004:
-					// no native dialog was shown because LAContext.InteractionNotAllowed is `true`
-					throw new BiometryException(BiometryExceptionReason.Failed, "");
+					reason = BiometryExceptionReason.Locked;
+					message = "Biometry is locked because there were too many failed attempts.";
+					break;
+
+				// The context was previously invalidated.
+				// You can invalidate a context by calling its Invalidate method.
+				case -10: 
+					message = "The context was invalidated";
+					break;
+
+				// An attempt to authenticate with Apple Watch failed.
+				// Only applies when using LAPolicy.DeviceOwnerAuthenticationWithWatch.
+				case -11:
+					message = "No paired Apple Watch is available.";
+					break;
+
+				// Displaying the required authentication user interface is forbidden.
+				// Only applies when LAContext.InteractionNotAllowed is set to true.
+				case -1004: 
+					message = "Displaying the required authentication user interface is forbidden.";
+					break;
+
+				// Unknown or unmanaged case.
 				default:
-					// unknown case not documented by Apple, just return denied instead of throwing an exception to prevent breaking the future
-					throw new BiometryException(BiometryExceptionReason.Failed, "");
+					message = $"Unknown or unmanaged case. Error code {laError.Code}.";
+					break;
+			}
+
+			throw new BiometryException(reason, message);
+		}
+		else
+		{
+			if (_logger.IsEnabled(LogLevel.Information))
+			{
+				_logger.LogDebug("Biometry has been successfully scanned.");
 			}
 		}
 	}
@@ -162,7 +207,7 @@ public sealed class BiometryService : IBiometryService
 		{
 			if (_logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug($"Encrypting the key '{keyName}'.");
+				_logger.LogDebug("Encrypting the key '{keyName}'.", keyName);
 			}
 
 			var biometryCapabilities = await GetCapabilities(ct);
@@ -172,7 +217,7 @@ public sealed class BiometryService : IBiometryService
 
 				if (_logger.IsEnabled(LogLevel.Debug))
 				{
-					_logger.LogDebug($"The key '{keyName}' has been successfully encrypted.");
+					_logger.LogDebug("The key '{keyName}' has been successfully encrypted.", keyName);
 				}
 			}
 			else
@@ -187,7 +232,7 @@ public sealed class BiometryService : IBiometryService
 		{
 			if (_logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug($"The key '{keyName}' has not been successfully encrypted.");
+				_logger.LogDebug("The key '{keyName}' has not been successfully encrypted.", keyName);
 			}
 			throw;
 		}
@@ -200,7 +245,7 @@ public sealed class BiometryService : IBiometryService
 		{
 			if (_logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug($"Decrypting the key '{keyName}'.");
+				_logger.LogDebug("Decrypting the key '{keyName}'.", keyName);
 			}
 
 			var biometryCapabilities = await GetCapabilities(ct);
@@ -210,7 +255,7 @@ public sealed class BiometryService : IBiometryService
 
 				if (_logger.IsEnabled(LogLevel.Debug))
 				{
-					_logger.LogDebug($"The key '{keyName}' has been successfully decrypted.");
+					_logger.LogDebug("The key '{keyName}' has been successfully decrypted.", keyName);
 				}
 
 				return keyValue;
@@ -227,7 +272,7 @@ public sealed class BiometryService : IBiometryService
 		{
 			if (_logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug($"The key '{keyName}' has not been successfully decrypted.");
+				_logger.LogDebug("The key '{keyName}' has not been successfully decrypted.", keyName);
 			}
 			throw;
 		}
@@ -238,7 +283,7 @@ public sealed class BiometryService : IBiometryService
 	{
 		if (_logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug($"Removing the key '{keyName}'.");
+			_logger.LogDebug("Removing the key '{keyName}'.", keyName);
 		}
 
 		var record = new SecRecord(SecKind.GenericPassword)
@@ -252,22 +297,22 @@ public sealed class BiometryService : IBiometryService
 		{
 			if (_logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug($"The key '{keyName}' has not been successfully removed.");
+				_logger.LogDebug("The key '{keyName}' has not been successfully removed.", keyName);
 			}
 			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while removing the key '{keyName}'. Status = {status}");
 		}
 
 		if (_logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug($"The key '{keyName}' has been successfully removed.");
+			_logger.LogDebug("The key '{keyName}' has been successfully removed.", keyName);
 		}
 	}
 
 	/// <summary>
-	/// 
+	/// Gets <see cref="BiometryType"/> from <see cref="LABiometryType"/>.
 	/// </summary>
-	/// <param name="biometryType"></param>
-	/// <returns></returns>
+	/// <param name="biometryType"><see cref="LABiometryType"/>.</param>
+	/// <returns><see cref="BiometryType"/>.</returns>
 	private static BiometryType GetBiometryTypeFrom(LABiometryType biometryType)
 	{
 		return biometryType switch
@@ -280,16 +325,19 @@ public sealed class BiometryService : IBiometryService
 	}
 
 	/// <summary>
-	/// 
+	/// Encrypt a key using biometry.
 	/// </summary>
-	/// <param name="keyName"></param>
-	/// <param name="keyValue"></param>
-	/// <exception cref="BiometryException"></exception>
+	/// <remarks>
+	/// If the key already exists, it will be replaced.
+	/// </remarks>
+	/// <param name="keyName">The key name.</param>
+	/// <param name="keyValue">The key value.</param>
+	/// <exception cref="BiometryException">.</exception>
 	private void SetValueForKey(string keyName, string keyValue)
 	{
 		if (_logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug($"Saving the key '{keyName}'.");
+			_logger.LogDebug("Saving the key '{keyName}'.", keyName);
 		}
 
 		var record = new SecRecord(SecKind.GenericPassword)
@@ -299,7 +347,7 @@ public sealed class BiometryService : IBiometryService
 
 		// Check for duplicate key.
 		var status = SecKeyChain.Remove(record);
-		if (status is not SecStatusCode.Success | status is not SecStatusCode.ItemNotFound)
+		if (status is not SecStatusCode.Success & status is not SecStatusCode.ItemNotFound)
 		{
 			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while checking for duplicate key '{keyName}'. Status = {status}");
 		}
@@ -320,23 +368,22 @@ public sealed class BiometryService : IBiometryService
 
 		if (_logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug($"Successfully saved the key '{keyName}'.");
+			_logger.LogDebug("Successfully saved the key '{keyName}'.", keyName);
 		}
 	}
 
 	/// <summary>
-	/// 
+	/// Get the encrypted value for the key using biometry.
 	/// </summary>
-	/// <param name="keyName"></param>
-	/// <param name="useOperationPrompt"></param>
+	/// <param name="keyName">The key name.</param>
+	/// <param name="useOperationPrompt">Biometry user facing description.</param>
 	/// <returns></returns>
-	/// <exception cref="ArgumentException"></exception>
-	/// <exception cref="SecurityException"></exception>
+	/// <exception cref="BiometryException">.</exception>
 	private string GetValueForKey(string keyName, string useOperationPrompt)
 	{
 		if (_logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug($"Retrieving the key '{keyName}'.");
+			_logger.LogDebug("Retrieving the key '{keyName}'.", keyName);
 		}
 
 		var record = new SecRecord(SecKind.GenericPassword)
@@ -351,7 +398,7 @@ public sealed class BiometryService : IBiometryService
 		{
 			if (_logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug($"Successfully retrieved value of the key '{keyName}'.");
+				_logger.LogDebug("Successfully retrieved value of the key '{keyName}'.", keyName);
 			}
 			return key.Generic.ToString();
 		}
@@ -367,7 +414,7 @@ public sealed class BiometryService : IBiometryService
 				break;
 			case SecStatusCode.ItemNotFound:
 				message = $"Key '{keyName}' not found.";
-				reason = BiometryExceptionReason.KeyNotFound;
+				reason = BiometryExceptionReason.KeyInvalidated;
 				break;
 		}
 
