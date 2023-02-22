@@ -322,8 +322,6 @@ Global
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Debug|iPhone.Build.0 = Debug|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Debug|iPhone.Deploy.0 = Debug|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Debug|iPhoneSimulator.Deploy.0 = Debug|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Debug|NuGet.ActiveCfg = Debug|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Debug|NuGet.Build.0 = Debug|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Debug|NuGet.Deploy.0 = Debug|Any CPU
@@ -343,8 +341,6 @@ Global
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|Android.Build.0 = Release|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|Android.Deploy.0 = Release|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|ARM.ActiveCfg = Release|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|ARM.Build.0 = Release|Any CPU
 		{8DE2A70F-51EF-4023-96C5-F51B4AE6B882}.Release|ARM.Deploy.0 = Release|Any CPU
@@ -552,7 +548,6 @@ Global
 		{46578837-8751-498E-89F1-8E4F739D66C9}.Debug|iPhone.ActiveCfg = Debug|Any CPU
 		{46578837-8751-498E-89F1-8E4F739D66C9}.Debug|iPhone.Build.0 = Debug|Any CPU
 		{46578837-8751-498E-89F1-8E4F739D66C9}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{46578837-8751-498E-89F1-8E4F739D66C9}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
 		{46578837-8751-498E-89F1-8E4F739D66C9}.Debug|NuGet.ActiveCfg = Debug|Any CPU
 		{46578837-8751-498E-89F1-8E4F739D66C9}.Debug|NuGet.Build.0 = Debug|Any CPU
 		{46578837-8751-498E-89F1-8E4F739D66C9}.Debug|Simulator.ActiveCfg = Debug|Any CPU
@@ -678,8 +673,6 @@ Global
 		{12188A8F-EB24-4DCA-A090-96446944D598}.Debug|iPhone.Build.0 = Debug|x64
 		{12188A8F-EB24-4DCA-A090-96446944D598}.Debug|iPhone.Deploy.0 = Debug|x64
 		{12188A8F-EB24-4DCA-A090-96446944D598}.Debug|iPhoneSimulator.ActiveCfg = Debug|x64
-		{12188A8F-EB24-4DCA-A090-96446944D598}.Debug|iPhoneSimulator.Build.0 = Debug|x64
-		{12188A8F-EB24-4DCA-A090-96446944D598}.Debug|iPhoneSimulator.Deploy.0 = Debug|x64
 		{12188A8F-EB24-4DCA-A090-96446944D598}.Debug|NuGet.ActiveCfg = Debug|x64
 		{12188A8F-EB24-4DCA-A090-96446944D598}.Debug|NuGet.Build.0 = Debug|x64
 		{12188A8F-EB24-4DCA-A090-96446944D598}.Debug|NuGet.Deploy.0 = Debug|x64
@@ -699,8 +692,6 @@ Global
 		{12188A8F-EB24-4DCA-A090-96446944D598}.Release|Android.Build.0 = Release|x64
 		{12188A8F-EB24-4DCA-A090-96446944D598}.Release|Android.Deploy.0 = Release|x64
 		{12188A8F-EB24-4DCA-A090-96446944D598}.Release|Any CPU.ActiveCfg = Release|x64
-		{12188A8F-EB24-4DCA-A090-96446944D598}.Release|Any CPU.Build.0 = Release|x64
-		{12188A8F-EB24-4DCA-A090-96446944D598}.Release|Any CPU.Deploy.0 = Release|x64
 		{12188A8F-EB24-4DCA-A090-96446944D598}.Release|ARM.ActiveCfg = Release|x64
 		{12188A8F-EB24-4DCA-A090-96446944D598}.Release|ARM.Build.0 = Release|x64
 		{12188A8F-EB24-4DCA-A090-96446944D598}.Release|ARM.Deploy.0 = Release|x64
@@ -793,7 +784,6 @@ Global
 		{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}.Debug|iPhone.ActiveCfg = Debug|Any CPU
 		{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}.Debug|iPhone.Build.0 = Debug|Any CPU
 		{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
 		{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}.Debug|NuGet.ActiveCfg = Debug|Any CPU
 		{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}.Debug|NuGet.Build.0 = Debug|Any CPU
 		{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}.Debug|Simulator.ActiveCfg = Debug|Any CPU
@@ -807,7 +797,6 @@ Global
 		{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}.Release|Android.ActiveCfg = Release|Any CPU
 		{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}.Release|Android.Build.0 = Release|Any CPU
 		{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}.Release|ARM.ActiveCfg = Release|Any CPU
 		{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}.Release|ARM.Build.0 = Release|Any CPU
 		{8E44C703-A3D8-4B94-B2F7-3FA55D0429AB}.Release|ARM64.ActiveCfg = Release|Any CPU
@@ -849,6 +838,7 @@ Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{12188a8f-eb24-4dca-a090-96446944d598}*SharedItemsImports = 5
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{2b4dc5a4-bfd3-4c27-9bf9-51c2015926e4}*SharedItemsImports = 4
+		src\BiometryService.Uno.Shared\BiometryService.Uno.Shared.projitems*{38d70859-8ca3-4e16-b696-c5fb404b3d82}*SharedItemsImports = 5
 		src\BiometryService.Uno.Shared\BiometryService.Uno.Shared.projitems*{46578837-8751-498e-89f1-8e4f739d66c9}*SharedItemsImports = 5
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{6279c845-92f8-4333-ab99-3d213163593c}*SharedItemsImports = 13
 		Src\BiometryService.SampleApp.Uno\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems*{8de2a70f-51ef-4023-96c5-f51b4ae6b882}*SharedItemsImports = 4
