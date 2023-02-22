@@ -23,7 +23,7 @@ namespace BiometryService;
 /// <summary>
 /// Implementation of the <see cref="IBiometryService" /> for Android.
 /// </summary>
-public sealed class BiometryService : IBiometryService
+public sealed partial class BiometryService : IBiometryService
 {
 	private const string ANDROID_KEYSTORE = "AndroidKeyStore"; // Android constant, cannot be changed.
 	private const string CIPHER_NAME = "AES/CBC/PKCS7Padding";
@@ -92,41 +92,26 @@ public sealed class BiometryService : IBiometryService
 			_logger.LogDebug($"Encrypting the fingerprint for the key '{keyName}'.");
 		}
 
-		var capabilites = await GetCapabilities(ct);
-		if (capabilites.IsEnabled & capabilites.IsSupported)
+		await ValidateBiometryCapabilities(ct);
+
+		var crypto = CreateCryptoObject(keyName);
+		var result = await AuthenticateBiometry(ct, crypto);
+		var valueToEncrypt = Encoding.UTF8.GetBytes(value);
+		var encryptedData = result.CryptoObject.Cipher.DoFinal(valueToEncrypt);
+		var iv = result.CryptoObject.Cipher.GetIV();
+
+		var bytes = new byte[iv.Length + encryptedData.Length];
+		iv.CopyTo(bytes, 0);
+		encryptedData.CopyTo(bytes, iv.Length);
+
+		if (_logger.IsEnabled(LogLevel.Information))
 		{
-			var crypto = CreateCryptoObject(keyName);
-			var result = await AuthenticateBiometry(ct, crypto);
-			var valueToEncrypt = Encoding.UTF8.GetBytes(value);
-			var encryptedData = result.CryptoObject.Cipher.DoFinal(valueToEncrypt);
-			var iv = result.CryptoObject.Cipher.GetIV();
-
-			var bytes = new byte[iv.Length + encryptedData.Length];
-			iv.CopyTo(bytes, 0);
-			encryptedData.CopyTo(bytes, iv.Length);
-
-			if (_logger.IsEnabled(LogLevel.Information))
-			{
-				_logger.LogInformation($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
-			}
-
-			string encodedData = Base64.EncodeToString(bytes, Base64Flags.NoWrap);
-			var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
-			sharedpref.Edit().PutString(keyName, encodedData).Apply();
+			_logger.LogInformation($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
 		}
-		else
-		{
-			var reason = BiometryExceptionReason.Unavailable;
-			var message = "Biometry is not available on this device";
 
-			if (capabilites.IsSupported)
-			{
-				reason = BiometryExceptionReason.NotEnrolled;
-				message = "Biometrics are not enrolled on this device";
-			}
-
-			throw new BiometryException(reason, message);
-		}
+		var encodedData = Base64.EncodeToString(bytes, Base64Flags.NoWrap);
+		var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
+		sharedpref.Edit().PutString(keyName, encodedData).Apply();
 	}
 
 	/// <inheritdoc/>
@@ -137,10 +122,11 @@ public sealed class BiometryService : IBiometryService
 			_logger.LogDebug($"Decrypting the fingerprint for the key '{keyName}'.");
 		}
 
+		await ValidateBiometryCapabilities(ct);
+
 		var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
 		var storedData = sharedpref.GetString(keyName, null);
 
-		// TODO: Voir debug la behavior
 		if (storedData == null)
 		{
 			throw new BiometryException(BiometryExceptionReason.KeyInvalidated, "Encrypted values could not be found. It may have been removed.");

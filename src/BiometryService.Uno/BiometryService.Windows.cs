@@ -15,12 +15,12 @@ using Windows.Storage;
 namespace BiometryService
 {
 	/// <summary>
-	/// UWP implementation of <see cref="IBiometryService"/>.
+	/// Windows implementation of <see cref="IBiometryService"/>.
 	/// </summary>
 	/// <remarks>
 	/// This implementation is not fully implementeed.
 	/// </remarks>
-	public class BiometryService : IBiometryService
+	public sealed partial class BiometryService : IBiometryService
 	{
 		private readonly IPropertySet _keys;
 		private readonly ILogger _logger;

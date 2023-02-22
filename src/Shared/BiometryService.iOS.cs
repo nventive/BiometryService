@@ -13,7 +13,7 @@ namespace BiometryService;
 /// <summary>
 /// Implementation of the <see cref="IBiometryService" /> for iOS.
 /// </summary>
-public sealed class BiometryService : IBiometryService
+public sealed partial class BiometryService : IBiometryService
 {
 	/// <summary>
 	/// User facing description of the kind of authentication that the application is trying to perform.
@@ -185,7 +185,11 @@ public sealed class BiometryService : IBiometryService
 
 				// Unknown or unmanaged case.
 				default:
-					message = $"Unknown or unmanaged case. Error code {laError.Code}.";
+					message = string.Concat(
+						$"Unknown or unmanaged case. Error code {laError.Code}.",
+						$"Description: '{laError.LocalizedDescription}'.{Environment.NewLine}",
+						"See https://developer.apple.com/documentation/localauthentication/laerror/code for more informations."
+					);
 					break;
 			}
 
@@ -210,22 +214,13 @@ public sealed class BiometryService : IBiometryService
 				_logger.LogDebug("Encrypting the key '{keyName}'.", keyName);
 			}
 
-			var biometryCapabilities = await GetCapabilities(ct);
-			if (biometryCapabilities.IsSupported & biometryCapabilities.IsEnabled)
-			{
-				SetValueForKey(keyName, keyValue);
+			await ValidateBiometryCapabilities(ct);
 
-				if (_logger.IsEnabled(LogLevel.Debug))
-				{
-					_logger.LogDebug("The key '{keyName}' has been successfully encrypted.", keyName);
-				}
-			}
-			else
-			{
-				var reason = biometryCapabilities.IsSupported ? BiometryExceptionReason.NotEnrolled : BiometryExceptionReason.Unavailable;
-				var message = biometryCapabilities.IsSupported ? "Biometrics are not enrolled on this device" : "Biometry is not available on this device";
+			SetValueForKey(keyName, keyValue);
 
-				throw new BiometryException(reason, message);
+			if (_logger.IsEnabled(LogLevel.Debug))
+			{
+				_logger.LogDebug("The key '{keyName}' has been successfully encrypted.", keyName);
 			}
 		}
 		catch
@@ -248,25 +243,16 @@ public sealed class BiometryService : IBiometryService
 				_logger.LogDebug("Decrypting the key '{keyName}'.", keyName);
 			}
 
-			var biometryCapabilities = await GetCapabilities(ct);
-			if (biometryCapabilities.IsEnabled)
+			await ValidateBiometryCapabilities(ct);
+
+			var keyValue = GetValueForKey(keyName, _useOperationPrompt);
+
+			if (_logger.IsEnabled(LogLevel.Debug))
 			{
-				var keyValue = GetValueForKey(keyName, _useOperationPrompt);
-
-				if (_logger.IsEnabled(LogLevel.Debug))
-				{
-					_logger.LogDebug("The key '{keyName}' has been successfully decrypted.", keyName);
-				}
-
-				return keyValue;
+				_logger.LogDebug("The key '{keyName}' has been successfully decrypted.", keyName);
 			}
-			else
-			{
-				var reason = biometryCapabilities.IsSupported ? BiometryExceptionReason.NotEnrolled : BiometryExceptionReason.Unavailable;
-				var message = biometryCapabilities.IsSupported ? "Biometrics are not enrolled on this device" : "Biometry is not available on this device";
 
-				throw new BiometryException(reason, message);
-			}
+			return keyValue;
 		}
 		catch
 		{

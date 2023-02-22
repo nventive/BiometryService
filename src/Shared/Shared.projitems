@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UnsupportedBiometryService.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)BiometryService.Shared.cs" />
     <None Include="$(MSBuildThisFileDirectory)Directory.Build.targets" />
   </ItemGroup>
 </Project>
