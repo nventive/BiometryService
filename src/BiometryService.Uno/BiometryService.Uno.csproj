@@ -42,5 +42,5 @@
     <PackageReference Include="Xamarin.AndroidX.RecyclerView " Version="1.2.1.1" />
   </ItemGroup>
 
-  <Import Project="..\Shared\Shared.projitems" Label="Shared" />
+  <Import Project="..\BiometryService.Uno.Shared\BiometryService.Uno.Shared.projitems" Label="Shared" />
 </Project>

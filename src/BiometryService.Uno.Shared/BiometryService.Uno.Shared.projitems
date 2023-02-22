@@ -14,12 +14,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)BiometryExceptionReason.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BiometryService.Android.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BiometryService.iOS.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BiometryService.Shared.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BiometryType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IBiometryService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnsupportedBiometryService.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)BiometryService.Shared.cs" />
     <None Include="$(MSBuildThisFileDirectory)Directory.Build.targets" />
   </ItemGroup>
 </Project>

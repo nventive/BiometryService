@@ -55,5 +55,5 @@
 		<UpToDateCheckInput Include="**\*.xaml" Exclude="bin\**\*.xaml;obj\**\*.xaml" />
 	</ItemGroup>
 
-	<Import Project="..\Shared\Shared.projitems" Label="Shared" />
+	<Import Project="..\BiometryService.Uno.Shared\BiometryService.Uno.Shared.projitems" Label="Shared" />
 </Project>

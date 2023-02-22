@@ -46,14 +46,16 @@ namespace BiometryService.SampleApp.Uno
 			// use LAPolicy.DeviceOwnerAuthenticationWithBiometrics for biometrics only with no fallback to passcode/password
 			// use LAPolicy.DeviceOwnerAuthentication for biometrics+watch with fallback to passcode/password
 #if __IOS__
-			var laContext = new LAContext();
-			laContext.LocalizedReason = "REASON THAT APP WANTS TO USE BIOMETRY :)";
-			laContext.LocalizedFallbackTitle = "FALLBACK";
-			laContext.LocalizedCancelTitle = "CANCEL";
+			var laContext = new LAContext
+			{
+				LocalizedReason = "REASON THAT APP WANTS TO USE BIOMETRY :)",
+				LocalizedFallbackTitle = "FALLBACK",
+				LocalizedCancelTitle = "CANCEL"
+			};
 
 			_biometryService = new BiometryService(
-				laContext,
 				"Biometrics_Confirm",
+				laContext,
 				LAPolicy.DeviceOwnerAuthentication,
 				App.Instance.LoggerFactory);
 #endif

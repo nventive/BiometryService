@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿#if __WINDOWS__ || WINDOWS_UWP || __ANDROID__ || __IOS__
+using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 
@@ -37,3 +38,4 @@ public sealed partial class BiometryService
 		}
 	}
 }
+#endif
