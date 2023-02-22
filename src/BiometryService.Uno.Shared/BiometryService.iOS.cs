@@ -349,7 +349,7 @@ public sealed partial class BiometryService : IBiometryService
 		var result = SecKeyChain.Add(record);
 		if (result is not SecStatusCode.Success)
 		{
-			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while saving the key '{keyName}'. Status = {status}");
+			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while saving the key '{keyName}'.");
 		}
 
 		if (_logger.IsEnabled(LogLevel.Debug))
