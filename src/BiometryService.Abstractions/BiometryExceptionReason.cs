@@ -28,6 +28,7 @@ public enum BiometryExceptionReason
 	/// <summary>
 	/// The device has been locked from using his biometrics.
 	/// Due mostly to too many attempts.
+	/// User have to try again later or unlock his device again.
 	/// </summary>
 	Locked,
 
