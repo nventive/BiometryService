@@ -333,28 +333,30 @@ public sealed partial class BiometryService : IBiometryService
 
 		// Check for duplicate key.
 		var status = SecKeyChain.Remove(record);
-		if (status is not SecStatusCode.Success & status is not SecStatusCode.ItemNotFound)
+		if (status is SecStatusCode.Success || status is SecStatusCode.ItemNotFound)
+		{
+			// Use biometry to encrypt the key.
+			record.AccessControl = new SecAccessControl(
+				SecAccessible.WhenPasscodeSetThisDeviceOnly,
+				_fallbackOnPasscodeAuthentication ? SecAccessControlCreateFlags.UserPresence : SecAccessControlCreateFlags.BiometryCurrentSet
+			);
+
+			record.Generic = NSData.FromString(keyValue);
+
+			var result = SecKeyChain.Add(record);
+			if (result is not SecStatusCode.Success)
+			{
+				throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while saving the key '{keyName}'.");
+			}
+
+			if (_logger.IsEnabled(LogLevel.Debug))
+			{
+				_logger.LogDebug("Successfully saved the key '{keyName}'.", keyName);
+			}
+		}
+		else
 		{
 			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while checking for duplicate key '{keyName}'. Status = {status}");
-		}
-
-		// Use biometry to encrypt the key.
-		record.AccessControl = new SecAccessControl(
-			SecAccessible.WhenPasscodeSetThisDeviceOnly,
-			_fallbackOnPasscodeAuthentication ? SecAccessControlCreateFlags.UserPresence : SecAccessControlCreateFlags.BiometryCurrentSet
-		);
-
-		record.Generic = NSData.FromString(keyValue);
-
-		var result = SecKeyChain.Add(record);
-		if (result is not SecStatusCode.Success)
-		{
-			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while saving the key '{keyName}'.");
-		}
-
-		if (_logger.IsEnabled(LogLevel.Debug))
-		{
-			_logger.LogDebug("Successfully saved the key '{keyName}'.", keyName);
 		}
 	}
 

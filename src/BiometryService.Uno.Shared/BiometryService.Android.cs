@@ -42,7 +42,7 @@ public sealed partial class BiometryService : IBiometryService
 	/// Initializes a new instance of the <see cref="BiometryService" /> class.
 	/// </summary>
 	/// <param name="fragmentActivity"><see cref="FragmentActivity"/>.</param>
-	/// <param name="promptInfoBuilder">?</param>
+	/// <param name="promptInfoBuilder">Biometry configuration.</param>
 	/// <param name="loggerFactory"><see cref="ILoggerFactory"/>.</param>
 	public BiometryService(FragmentActivity fragmentActivity, Func<BiometricPrompt.PromptInfo> promptInfoBuilder, ILoggerFactory loggerFactory = null)
 	{
