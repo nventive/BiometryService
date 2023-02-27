@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<LangVersion>10.0</LangVersion>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<Authors>nventive</Authors>
+		<Company>nventive</Company>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/nventive/BiometryService</PackageProjectUrl>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageTags>biometry;mvvm;maui;winui;ios;android;xamarin;uwp</PackageTags>
+	</PropertyGroup>
+</Project>
