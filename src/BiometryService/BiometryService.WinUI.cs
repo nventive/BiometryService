@@ -1,7 +1,6 @@
 ﻿#if __WINDOWS__
 using System;
 using System.IO;
-using System.Reactive.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;

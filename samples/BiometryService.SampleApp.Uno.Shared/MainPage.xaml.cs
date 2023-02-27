@@ -18,13 +18,8 @@ using LocalAuthentication;
 #endif
 
 #if __ANDROID__
-using System.Reactive.Concurrency;
 using BiometryService.SampleApp.Uno.Droid;
 using AndroidX.Biometric;
-#endif
-
-#if WINDOWS_UWP || WINDOWS
-using System.Reactive.Concurrency;
 #endif
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
