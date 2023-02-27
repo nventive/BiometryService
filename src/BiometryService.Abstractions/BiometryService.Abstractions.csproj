@@ -2,5 +2,9 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>10.0</LangVersion>
+		<Authors>nventive</Authors>
+		<Company>nventive</Company>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/nventive/BiometryService</PackageProjectUrl>
 	</PropertyGroup>
 </Project>

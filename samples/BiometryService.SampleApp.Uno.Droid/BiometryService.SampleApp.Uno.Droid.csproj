@@ -102,6 +102,8 @@
     <ProjectReference Include="..\..\src\BiometryService\BiometryService.csproj">
       <Project>{5d64f78b-2420-4bea-acd7-30b3e4b4e56f}</Project>
       <Name>BiometryService</Name>
+      <TargetPlatformIdentifier>Android</TargetPlatformIdentifier>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
   <Import Project="..\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems" Label="Shared" Condition="Exists('..\BiometryService.SampleApp.Uno.Shared\BiometryService.SampleApp.Uno.Shared.projitems')" />
