@@ -2,11 +2,28 @@
 	<PropertyGroup>
 		<LangVersion>10.0</LangVersion>
 		<TargetFramework>netstandard2.0</TargetFramework>
+		<RootNamespace>BiometryService</RootNamespace>
 		<Authors>nventive</Authors>
 		<Company>nventive</Company>
+		<AssemblyName>BiometryService.Abstractions</AssemblyName>
+		<PackageId>BiometryService.Abstractions</PackageId>
+		<Description>BiometryService.Abstractions</Description>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/nventive/BiometryService</PackageProjectUrl>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageTags>biometry;mvvm;maui;winui;ios;android;xamarin;uwp</PackageTags>
 	</PropertyGroup>
+
+	<!-- Needed for Source Link support. -->
+	<PropertyGroup>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
+	<!-- Needed for Source Link support. -->
+	<ItemGroup>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+	</ItemGroup>
 </Project>

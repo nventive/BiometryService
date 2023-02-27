@@ -178,10 +178,11 @@ public sealed partial class BiometryService : IBiometryService
 			_logger.LogDebug($"Start authenticating the user biometry.");
 		}
 
-		var authenticateCode = 0;
+		// TODO: Refactor this. Why are we doing a version check? Could we juste use the parameter used by the user isntead of BiometricManager.Authenticators.BiometricStrong?
+		var authenticateCode = _biometricManager.CanAuthenticate(BiometricManager.Authenticators.BiometricStrong);
 		if (Android.OS.Build.VERSION.SdkInt <= Android.OS.BuildVersionCodes.Q)
 		{
-			authenticateCode = _biometricManager.CanAuthenticate(); // TODO Eliminate warning somehow?
+			authenticateCode = _biometricManager.CanAuthenticate();
 		}
 		else
 		{
