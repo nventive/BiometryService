@@ -20,6 +20,7 @@ public sealed partial class BiometryService : IBiometryService
 	/// </summary>
 	/// <remarks>
 	/// Set this value to a string that will be displayed to the user when the authentication takes place for the item to give the user some context for the request.
+	/// Only used for <see cref="BiometryType.Fingerprint"/>.
 	/// </remarks>
 	private readonly string _useOperationPrompt;
 
@@ -37,7 +38,7 @@ public sealed partial class BiometryService : IBiometryService
 	/// <summary>
 	/// Initializes a new instance of the <see cref="BiometryService" /> class.
 	/// </summary>
-	/// <param name="useOperationPrompt">Biometry user facing description.</param>
+	/// <param name="useOperationPrompt">Biometry user facing description when using <see cref="BiometryType.Fingerprint"/>.</param>
 	/// <param name="laContext"><see cref="LAContext" />.</param>
 	/// <param name="localAuthenticationPolicy"><see cref="LAPolicy"/>.</param>
 	/// <param name="loggerFactory"><see cref="ILoggerFactory"/>.</param>
@@ -259,7 +260,7 @@ public sealed partial class BiometryService : IBiometryService
 
 			await ValidateBiometryCapabilities(ct);
 
-			var keyValue = GetValueForKey(keyName, _useOperationPrompt);
+			var keyValue = GetValueForKey(keyName);
 
 			if (_logger.IsEnabled(LogLevel.Debug))
 			{
@@ -360,7 +361,7 @@ public sealed partial class BiometryService : IBiometryService
 			var result = SecKeyChain.Add(record);
 			if (result is not SecStatusCode.Success)
 			{
-				throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while saving the key '{keyName}'.");
+				throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while saving the key '{keyName}'. Status = {result}.");
 			}
 
 			if (_logger.IsEnabled(LogLevel.Debug))
@@ -370,7 +371,7 @@ public sealed partial class BiometryService : IBiometryService
 		}
 		else
 		{
-			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while checking for duplicate key '{keyName}'. Status = {status}");
+			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while checking for duplicate key '{keyName}'. Status = {status}.");
 		}
 	}
 
@@ -378,11 +379,10 @@ public sealed partial class BiometryService : IBiometryService
 	/// Get the encrypted value for the key using biometry.
 	/// </summary>
 	/// <param name="keyName">The key name.</param>
-	/// <param name="useOperationPrompt">Biometry user facing description.</param>
-	/// <returns></returns>
+	/// <returns>Key value.</returns>
 	/// <exception cref="BiometryException">.</exception>
 	/// <exception cref="OperationCanceledException">.</exception>
-	private string GetValueForKey(string keyName, string useOperationPrompt)
+	private string GetValueForKey(string keyName)
 	{
 		if (_logger.IsEnabled(LogLevel.Debug))
 		{
@@ -392,7 +392,7 @@ public sealed partial class BiometryService : IBiometryService
 		var record = new SecRecord(SecKind.GenericPassword)
 		{
 			Service = keyName.ToLowerInvariant(),
-			UseOperationPrompt = useOperationPrompt
+			UseOperationPrompt = _useOperationPrompt
 		};
 
 		var key = SecKeyChain.QueryAsRecord(record, out var result);
