@@ -1,0 +1,133 @@
+﻿<Page x:Class="BiometryService.SampleApp.Uno.MainPage"
+	  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	  xmlns:local="using:BiometryService.SampleApp.Uno"
+	  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	  xmlns:ios="http://uno.ui/ios"
+	  mc:Ignorable="d ios">
+
+	<Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+
+		<CommandBar Content="Biometric Authentication"
+					ios:Margin="0,40,0,0" />
+
+		<ScrollViewer Grid.Row="1">
+			<StackPanel Margin="16">
+
+				<!-- Capabilites Info -->
+				<TextBlock Text="Capabilites:"
+						   FontSize="30" />
+
+				<StackPanel Orientation="Horizontal">
+					<TextBlock Text="BiometryType:" />
+					<TextBlock x:Name="BiometryTypeTxt"
+							   Margin="4,0,0,0"
+							   FontWeight="Bold" />
+				</StackPanel>
+
+				<StackPanel Orientation="Horizontal">
+					<TextBlock Text="IsSupported:" />
+					<TextBlock x:Name="IsSupportedTxt"
+							   Margin="4,0,0,0"
+							   FontWeight="Bold" />
+				</StackPanel>
+
+				<StackPanel Orientation="Horizontal">
+					<TextBlock Text="IsEnabled:" />
+					<TextBlock x:Name="IsEnabledTxt"
+							   Margin="4,0,0,0"
+							   FontWeight="Bold" />
+				</StackPanel>
+
+				<StackPanel Orientation="Horizontal">
+					<TextBlock Text="IsPasscodeSet:" />
+					<TextBlock x:Name="IsPasscodeSetTxt"
+							   Margin="4,0,0,0"
+							   FontWeight="Bold" />
+				</StackPanel>
+
+				<!-- Action buttons -->
+				<!-- Authenticate -->
+				<Button x:Name="Btn_Authenticate"
+						Content="Authenticate"
+						Click="AuthenticateButtonClick"
+						Foreground="Black"
+						HorizontalAlignment="Stretch"
+						HorizontalContentAlignment="Center" />
+
+				<Border Background="LightGray"
+						Margin="0,16,0,0"
+						Padding="8">
+					<TextBlock x:Name="TxtAuthenticationStatus"
+							   MaxLines="3"
+							   TextWrapping="WrapWholeWords"
+							   Foreground="Black" />
+				</Border>
+
+				<!-- Encrypt/Decrypt -->
+				<TextBox PlaceholderText="Enter Text to Encrypt"
+						 Margin="0,48,0,0"
+						 x:Name="TxtToEncrypt" />
+
+				<!-- Encrypt -->
+				<Button x:Name="Btn_Encrypt"
+						Content="Encrypt"
+						Click="EncryptButtonClick"
+						Foreground="Black"
+						HorizontalAlignment="Stretch"
+						HorizontalContentAlignment="Center"
+						Margin="0,16,0,0" />
+
+				<Border Background="LightGray"
+						Margin="0,16,0,0"
+						Padding="8">
+					<TextBlock x:Name="TxtEncryptionStatus"
+							   MaxLines="3"
+							   TextWrapping="WrapWholeWords"
+							   Foreground="Black" />
+				</Border>
+
+				<!-- Decrypt -->
+				<Button x:Name="Btn_Decrypt"
+						Content="Decrypt"
+						Click="DecryptButtonClick"
+						Margin="0,16,0,0"
+						Foreground="Black"
+						HorizontalAlignment="Stretch"
+						HorizontalContentAlignment="Center" />
+
+				<Border Background="LightGray"
+						Margin="0,16,0,0"
+						Padding="8">
+					<TextBlock x:Name="TxtDecrypted"
+							   MaxLines="3"
+							   TextWrapping="WrapWholeWords"
+							   Foreground="Black" />
+				</Border>
+
+				<!-- Remove -->
+				<Button x:Name="Btn_Remove"
+						Content="Remove"
+						Click="RemoveButtonClick"
+						Margin="0,16,0,0"
+						Foreground="Black"
+						HorizontalAlignment="Stretch"
+						HorizontalContentAlignment="Center" />
+
+				<Border Background="LightGray"
+						Margin="0,16,0,0"
+						Padding="8">
+					<TextBlock x:Name="TxtRemove"
+							   MaxLines="3"
+							   TextWrapping="WrapWholeWords"
+							   Foreground="Black" />
+				</Border>
+			</StackPanel>
+		</ScrollViewer>
+	</Grid>
+</Page>

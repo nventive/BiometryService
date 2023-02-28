@@ -49,7 +49,7 @@
     logProjectEvents: false
     createLogFile: false
     msbuildArguments: > # Set the version of the packages, will have no effect on application projects (Heads).
-      /p:PackageVersion=$(GitVersion.SemVer) 
+      /p:PackageVersion=$(GitVersion.SemVer)
       /p:ContinuousIntegrationBuild=true
 
 - task: PublishBuildArtifacts@1
