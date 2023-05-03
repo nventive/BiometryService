@@ -6,136 +6,161 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-This library offers a simple contract to use the biometry across Android, iOS and UWP.
+This library offers a simple contract to use the biometry across Android, iOS and Windows (UWP & WinUI).
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ## Features
 
-The biometryService Interface 'IBiometryService' Implement the following method :
+The Biometry Service Interface `IBiometryService` is made of the following methods:
 
 - GetGapabilites
-- ValidateIdentity
+- ScanBiometry
 - Encryt
 - Decrypt
+- Remove
 
 As of now, this is the list of features available per platform.
 
-
-| Feature          | iOS | Android | UWP  |
-| ---------------- | --- | ------- | ---- |
-| GetCapability    | x   | x       | x    |
-| ValidateIdentity | x   | x       | Mock |
-| Encrypt          | x   | x       | Mock |
-| Decrypt          | x   | x       | Mock |
+| Feature          | iOS     | Android | UWP     | WinUI   |
+| ---------------- | ------- | ------- | ------- | ------- |
+| GetCapability    | &check; | &check; | &check; | &check; |
+| ValidateIdentity | &check; | &check; | &cross; | &cross; |
+| Encrypt          | &check; | &check; | &cross; | &cross; |
+| Decrypt          | &check; | &check; | &cross; | &cross; |
 
 ## Getting Started
 
-Install the latest version of BiometryService Nuget package "Add Nuget Reference".
+Install the latest stable version of `BiometryService` in your platform heads and `BiometryService.Abstractions` in your presentation layer if you are using MVVM pattern, and if not just install both in your platform heads.
 
-A small sample is available as a playground.
+A small sample Uno application is available as a playground with some basic command to test the service methods.
+They also provide some basic initialization but no dependency injection and more complex code.
 
 ### Instantiation
 
-#### iOS
-
-An example of instantiation as follow with the fallback to the pin code with some text descriptions to display for the user.
-
-```
-var options = new BiometryOptions();
-options.LocalizedReasonBodyText = "REASON THAT APP WANTS TO USE BIOMETRY";
-options.LocalizedFallbackButtonText = "FALLBACK";
-options.LocalizedCancelButtonText = "CANCEL";
-
-// use LAPolicy.DeviceOwnerAuthenticationWithBiometrics for biometrics only with no fallback to passcode/password
-// use LAPolicy.DeviceOwnerAuthentication for biometrics+watch with fallback to passcode/password
-_biometryService = new BiometryService(options, async ct => "Biometrics_Confirm", LAPolicy.DeviceOwnerAuthentication);
-```
-
 #### Android
 
-Face ID is only available with the followwing configuration `.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricWeak` during instantiation of the service.
+Face authentication is only available when using `.SetAllowedAuthenticators(AndroidX.Biometric.BiometricManager.Authenticators.BiometricWeak)` in the `BiometricPrompt.PromptInfo.Builder` instantiation that is required for the service. Please note that if you are using `.SetAllowedAuthenticators(AndroidX.Biometric.BiometricManager.Authenticators.BiometricStrong)` in the `BiometricPrompt.PromptInfo.Builder` Face authentication is only available on a Google Pixel 4 as of now.
 
-Encrypt/Decrypt method are only available with the following configuration `.SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong` during instantiation of the service.
+Please note that Encrypt/Decrypt methods are only available when using `.SetAllowedAuthenticators(AndroidX.Biometric.BiometricManager.Authenticators.BiometricStrong)` in the `BiometricPrompt.PromptInfo.Builder` instantiation that is required for the service.
 
-An example of instantiation is as follow, with the fallback to the pin code with some text descriptions to display for the user.
+Please also note that the title and subtitle are used for `Fingerprint` and `Face` biometry.
 
+Here is an example of instantiation of the service for Android.
+
+``` cs
+var promptBuilder = () => new BiometricPrompt.PromptInfo.Builder()
+	.SetTitle("Title")
+	.SetSubtitle("Subtitle")
+	.SetNegativeButtonText("Cancel")
+	.SetAllowedAuthenticators(AndroidX.Biometric.BiometricManager.Authenticators.BiometricStrong)
+	.Build();
+
+var biometryService = new BiometryService(
+	fragmentActivity: MainActivity.Instance,
+	promptInfoBuilder: promptBuilder,
+	loggerFactory: null
+);
 ```
+
+#### iOS
+
+Please note that you must set `NSFaceIDUsageDescription` (key/value) in the `Info.plist` file otherwise the service will throw an exception.
+
+Please also note that the prompt builder subtitle is used for `Fingerprint` biometry only.
+
+Here is an example of instantiation of the service for iOS.
+
+``` cs
 _biometryService = new BiometryService(
-    MainActivity.Instance,
-    CoreDispatcher.Main,
-    ct => Task.FromResult(new BiometricPrompt.PromptInfo.Builder()
-    .SetTitle("Biometrics SignIn")
-    .SetSubtitle("Biometrics Confirm")
-    .SetAllowedAuthenticators(BiometricManager.Authenticators.BiometricStrong | BiometricManager.Authenticators.DeviceCredential) // Fallback on secure pin
-    .SetNegativeButtonText("Cancel")
-    .Build()));
+	useOperationPrompt: "Subtitle",
+	laContext: null,
+	localAuthenticationPolicy: LAPolicy.DeviceOwnerAuthenticationWithBiometrics,
+	loggerFactory: null
+);
 ```
 
 ## Methods
 
+Please note that in case of error, `BiometryException` is thrown. 
+
+Biometry Exception Types:
+- `Failed`: Any other failures while trying to use the device biometrics.
+- `Unavailable`: The device biometrics is not available.
+- `NotEnrolled`: The device has not been enrolled to use biometrics.
+- `PasscodeNeeded`: The passcode needs to be set on the device.
+- `Locked`:
+  - The device has been locked from using his biometrics.
+  - Due mostly to too many attempts.
+  - User have to try again later or unlock his device again.
+- `KeyInvalidated`:
+  - Biometric information has changed (E.g. Touch ID or Face ID has changed).
+  - User have to set up biometric authentication again.
+
+If it's a cancellation error, `OperationCanceledException` is thrown.
+
 ### GetGapabilites
 
-This method helps to check the hardware status on the device.
-`_biometryService.GetCapabilities();`
+Gets the device's current biometric capabilities.
 
 It will return a struct `BiometryCapabilities` with the detailled device configuration.
 
-#### iOS
+### ScanBiometry
 
-| Capability   | ValidateIdentity | Decrypt | Encrypt |
-| ------------ | ---------------- | ------- | ------- |
-| Face ID      | x                | x       | x       |
-| Touch ID     | x                | x       | x       |
-| Fallback PIN | x                | x       | x       |
+Attemps to scan the user's biometry.
 
-#### Android
-
-
-| Capability   | ValidateIdentity | Decrypt | Encrypt |
-| ------------ | ---------------- | ------- | ------- |
-| Face ID      | x                | None    | None    |
-| Touch ID     | x                | x       | x       |
-| Fallback PIN | x                | x       | x       |
-
-On Android depending on how the service is instantiated, some features might not be available and will throw errors.
-
-### ValidateIdentity
-
-This method helps to authenticate the user by returning an Enum `BiometryResult`.
-
-`_biometryService.ValidateIdentity(ct);`
+``` cs
+await biometryService.ScanBiometry(cancellationToken);
+```
 
 ### Encrypt
 
-The follow method do specific actions according to the platorm targeted.
+Encrypts the value and stores it into the platform secure storage with the given key name.
 
-`await _biometryService.Encrypt(ct, "Key", "StringToEnrypt");`
-
-#### iOS
-
-The `SecKeyChain` will be used to store a string linked to a key. iOS is in charge of securing the data with biometric Authentication during the process.
-In case of error, `SecurityException` is thrown.
+``` cs
+await biometryService.Encrypt(cancellationToken, "KeyName", "KeyValue");
+```
 
 #### Android
 
-A new `CryptoObject` from `AndroidX.Biometric` is created with a key as a parameter. Then the data will be encrypted and presented to the `biometricPrompt` manager.
+A new `CryptoObject` from `AndroidX.Biometric` is created with a key as a parameter. Then the data will be encrypted and presented to the `BiometricPrompt` manager.
 The final step will encode the data in base64 and store it in App with the shared preferences.
 
+#### iOS
+
+The `SecKeyChain` will be used to store a string linked to a key. The OS is in charge of securing the data with biometric authentication during the process.
 
 ### Decrypt
 
-The following method does specific actions according to the platform targeted.
+Decrypts and gets the data associated to the given key name.
 
-`await _biometryService.Decrypt(ct, "Secret");`
+``` cs
+await biometryService.Decrypt(cancellationToken, "KeyName");
+```
+
+#### Android
+
+Retrieve the shared preference encrypted data, then decrypt it with the secret as a parameter by presenting it to the `BiometricPrompt` manager.
 
 #### iOS
 
 Retrieve the encrypted data from the `SecKeyChain` with the secret as a parameter. iOS is in charge of decrypting the data with biometric Authentication during the process. 
 
+### Remove
+
+Removes the ecrypted value in the platform secure storage.
+
+``` cs
+biometryService.Remove("KeyName");
+```
+
 #### Android
 
-Retrieve the shared preference encrypted data, then decrypt it with the secret as a parameter by presenting it to the `biometricPrompt` manager.
+Remove the encrypted data from the shared preferences.
+
+#### iOS
+
+Remove the encrypted data from the `SecKeyChain`.
 
 ## Changelog
 
