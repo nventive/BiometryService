@@ -12,6 +12,7 @@
 		<PackageTags>biometry;mvvm;maui;winui;ios;android;xamarin;uwp</PackageTags>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/nventive/BiometryService</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<DefineConstants Condition="'$(TargetFramework)'=='net6.0-windows10.0.19041'">$(DefineConstants);__WINDOWS__</DefineConstants>
 	</PropertyGroup>
 
@@ -43,6 +44,13 @@
 		<PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.5.1" />
 		<PackageReference Include="Xamarin.AndroidX.Core" Version="1.9.0" />
 		<PackageReference Include="Xamarin.AndroidX.RecyclerView" Version="1.2.1.7" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>

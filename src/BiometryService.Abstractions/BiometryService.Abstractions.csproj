@@ -8,9 +8,10 @@
 		<AssemblyName>BiometryService.Abstractions</AssemblyName>
 		<PackageId>BiometryService.Abstractions</PackageId>
 		<Description>BiometryService.Abstractions</Description>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/nventive/BiometryService</PackageProjectUrl>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageTags>biometry;mvvm;maui;winui;ios;android;xamarin;uwp</PackageTags>
 	</PropertyGroup>
 
@@ -25,5 +26,12 @@
 	<!-- Needed for Source Link support. -->
 	<ItemGroup>
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
 	</ItemGroup>
 </Project>
