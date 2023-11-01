@@ -7,12 +7,12 @@
 		<Company>nventive</Company>
 		<AssemblyName>BiometryService.Abstractions</AssemblyName>
 		<PackageId>BiometryService.Abstractions</PackageId>
-		<Description>BiometryService.Abstractions</Description>
+		<Description>A unified API for biometry on iOS, Android, and Windows.</Description>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/nventive/BiometryService</PackageProjectUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageTags>biometry;mvvm;maui;winui;ios;android;xamarin;uwp</PackageTags>
+		<PackageTags>biometry;FaceID;TouchID;Fingerprint;mvvm;maui;winui;ios;android;xamarin;uwp</PackageTags>
 	</PropertyGroup>
 
 	<!-- Needed for Source Link support. -->

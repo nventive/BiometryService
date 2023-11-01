@@ -189,11 +189,6 @@ On iOS, the method removes the encrypted data from the `SecKeyChain`.
 
 Please consult the [BREAKING CHANGES](BREAKING_CHANGES.md) for more information about breaking changes history.
 
-## Changelog
-
-Please consult the [CHANGELOG](CHANGELOG.md) for more information about version
-history.
-
 ## License
 
 This project is licensed under the Apache 2.0 license - see the
