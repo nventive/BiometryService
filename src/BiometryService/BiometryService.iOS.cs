@@ -13,7 +13,7 @@ namespace BiometryService;
 /// <summary>
 /// Implementation of the <see cref="IBiometryService" /> for iOS.
 /// </summary>
-public sealed partial class BiometryService : IBiometryService
+public sealed class BiometryService : BaseBiometryService
 {
 	/// <summary>
 	/// User facing description of the kind of authentication that the application is trying to perform.
@@ -30,8 +30,6 @@ public sealed partial class BiometryService : IBiometryService
 	/// Authentication policies.
 	/// </summary>
 	private readonly LAPolicy _localAuthenticationPolicy;
-	
-	private readonly ILogger _logger;
 
 	private readonly bool _fallbackOnPasscodeAuthentication = false;
 
@@ -47,20 +45,19 @@ public sealed partial class BiometryService : IBiometryService
 		LAContext laContext = null,
 		LAPolicy localAuthenticationPolicy = LAPolicy.DeviceOwnerAuthentication,
 		ILoggerFactory loggerFactory = null
-	)
+	) : base(loggerFactory)
 	{
 		_useOperationPrompt = useOperationPrompt;
 		_laContext = laContext ?? new LAContext();
 		_localAuthenticationPolicy = localAuthenticationPolicy;
-		_logger = loggerFactory?.CreateLogger<IBiometryService>() ?? NullLogger<IBiometryService>.Instance;
 	}
 
 	/// <inheritdoc/>
-	public Task<BiometryCapabilities> GetCapabilities(CancellationToken ct)
+	public override Task<BiometryCapabilities> GetCapabilities(CancellationToken ct)
 	{
-		if (_logger.IsEnabled(LogLevel.Debug))
+		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug("Assessing biometry capabilities.");
+			Logger.LogDebug("Assessing biometry capabilities.");
 		}
 
 		_laContext.CanEvaluatePolicy(_localAuthenticationPolicy, out var laError);
@@ -91,27 +88,27 @@ public sealed partial class BiometryService : IBiometryService
 			}
 		}
 
-		if (_logger.IsEnabled(LogLevel.Information))
+		if (Logger.IsEnabled(LogLevel.Information))
 		{
-			_logger.LogDebug("Biometry capabilities has been successfully assessed.");
+			Logger.LogDebug("Biometry capabilities has been successfully assessed.");
 		}
 
 		return Task.FromResult(new BiometryCapabilities(biometryType, biometryIsEnabled, passcodeIsSet));
 	}
 
 	/// <inheritdoc/>
-	public async Task ScanBiometry(CancellationToken ct)
+	public override async Task ScanBiometry(CancellationToken ct)
 	{
-		if (_logger.IsEnabled(LogLevel.Debug))
+		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug("Scanning biometry.");
+			Logger.LogDebug("Scanning biometry.");
 		}
 
 		if (_laContext.BiometryType is LABiometryType.FaceId)
 		{
-			if (_logger.IsEnabled(LogLevel.Trace))
+			if (Logger.IsEnabled(LogLevel.Trace))
 			{
-				_logger.LogTrace("Checks that `Info.plist` file contains NSFaceIDUsageDescription.");
+				Logger.LogTrace("Checks that `Info.plist` file contains NSFaceIDUsageDescription.");
 			}
 
 			// Checks that Info.plist file contains NSFaceIDUsageDescription (key/value) otherwise the application will crash.
@@ -212,79 +209,79 @@ public sealed partial class BiometryService : IBiometryService
 		}
 		else
 		{
-			if (_logger.IsEnabled(LogLevel.Information))
+			if (Logger.IsEnabled(LogLevel.Information))
 			{
-				_logger.LogDebug("Biometry has been successfully scanned.");
+				Logger.LogDebug("Biometry has been successfully scanned.");
 			}
 		}
 	}
 
 	/// <inheritdoc/>
-	public async Task Encrypt(CancellationToken ct, string keyName, string keyValue)
+	public override async Task Encrypt(CancellationToken ct, string keyName, string keyValue)
 	{
 		try
 		{
-			if (_logger.IsEnabled(LogLevel.Debug))
+			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug("Encrypting the key '{keyName}'.", keyName);
+				Logger.LogDebug("Encrypting the key '{keyName}'.", keyName);
 			}
 
 			await ValidateBiometryCapabilities(ct);
 
 			SetValueForKey(keyName, keyValue);
 
-			if (_logger.IsEnabled(LogLevel.Debug))
+			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug("The key '{keyName}' has been successfully encrypted.", keyName);
+				Logger.LogDebug("The key '{keyName}' has been successfully encrypted.", keyName);
 			}
 		}
 		catch
 		{
-			if (_logger.IsEnabled(LogLevel.Debug))
+			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug("The key '{keyName}' has not been successfully encrypted.", keyName);
+				Logger.LogDebug("The key '{keyName}' has not been successfully encrypted.", keyName);
 			}
 			throw;
 		}
 	}
 
 	/// <inheritdoc/>
-	public async Task<string> Decrypt(CancellationToken ct, string keyName)
+	public override async Task<string> Decrypt(CancellationToken ct, string keyName)
 	{
 		try
 		{
-			if (_logger.IsEnabled(LogLevel.Debug))
+			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug("Decrypting the key '{keyName}'.", keyName);
+				Logger.LogDebug("Decrypting the key '{keyName}'.", keyName);
 			}
 
 			await ValidateBiometryCapabilities(ct);
 
 			var keyValue = GetValueForKey(keyName);
 
-			if (_logger.IsEnabled(LogLevel.Debug))
+			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug("The key '{keyName}' has been successfully decrypted.", keyName);
+				Logger.LogDebug("The key '{keyName}' has been successfully decrypted.", keyName);
 			}
 
 			return keyValue;
 		}
 		catch
 		{
-			if (_logger.IsEnabled(LogLevel.Debug))
+			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug("The key '{keyName}' has not been successfully decrypted.", keyName);
+				Logger.LogDebug("The key '{keyName}' has not been successfully decrypted.", keyName);
 			}
 			throw;
 		}
 	}
 
 	/// <inheritdoc/>
-	public void Remove(string keyName)
+	public override void Remove(string keyName)
 	{
-		if (_logger.IsEnabled(LogLevel.Debug))
+		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug("Removing the key '{keyName}'.", keyName);
+			Logger.LogDebug("Removing the key '{keyName}'.", keyName);
 		}
 
 		var record = new SecRecord(SecKind.GenericPassword)
@@ -296,16 +293,16 @@ public sealed partial class BiometryService : IBiometryService
 		var status = SecKeyChain.Remove(record);
 		if (status is not SecStatusCode.Success)
 		{
-			if (_logger.IsEnabled(LogLevel.Debug))
+			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug("The key '{keyName}' has not been successfully removed. Status = {status}.", keyName, status);
+				Logger.LogDebug("The key '{keyName}' has not been successfully removed. Status = {status}.", keyName, status);
 			}
 			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while removing the key '{keyName}'. Status = {status}.");
 		}
 
-		if (_logger.IsEnabled(LogLevel.Debug))
+		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug("The key '{keyName}' has been successfully removed.", keyName);
+			Logger.LogDebug("The key '{keyName}' has been successfully removed.", keyName);
 		}
 	}
 
@@ -336,9 +333,9 @@ public sealed partial class BiometryService : IBiometryService
 	/// <exception cref="BiometryException">.</exception>
 	private void SetValueForKey(string keyName, string keyValue)
 	{
-		if (_logger.IsEnabled(LogLevel.Debug))
+		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug("Saving the key '{keyName}'.", keyName);
+			Logger.LogDebug("Saving the key '{keyName}'.", keyName);
 		}
 
 		var record = new SecRecord(SecKind.GenericPassword)
@@ -364,9 +361,9 @@ public sealed partial class BiometryService : IBiometryService
 				throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while saving the key '{keyName}'. Status = {result}.");
 			}
 
-			if (_logger.IsEnabled(LogLevel.Debug))
+			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug("Successfully saved the key '{keyName}'.", keyName);
+				Logger.LogDebug("Successfully saved the key '{keyName}'.", keyName);
 			}
 		}
 		else
@@ -384,9 +381,9 @@ public sealed partial class BiometryService : IBiometryService
 	/// <exception cref="OperationCanceledException">.</exception>
 	private string GetValueForKey(string keyName)
 	{
-		if (_logger.IsEnabled(LogLevel.Debug))
+		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug("Retrieving the key '{keyName}'.", keyName);
+			Logger.LogDebug("Retrieving the key '{keyName}'.", keyName);
 		}
 
 		var record = new SecRecord(SecKind.GenericPassword)
@@ -399,9 +396,9 @@ public sealed partial class BiometryService : IBiometryService
 
 		if (result is SecStatusCode.Success)
 		{
-			if (_logger.IsEnabled(LogLevel.Debug))
+			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				_logger.LogDebug("Successfully retrieved value of the key '{keyName}'.", keyName);
+				Logger.LogDebug("Successfully retrieved value of the key '{keyName}'.", keyName);
 			}
 			return key.Generic.ToString();
 		}
@@ -423,9 +420,9 @@ public sealed partial class BiometryService : IBiometryService
 				throw new OperationCanceledException();
 		}
 
-		if (_logger.IsEnabled(LogLevel.Error))
+		if (Logger.IsEnabled(LogLevel.Error))
 		{
-			_logger.LogError(message);
+			Logger.LogError(message);
 		}
 		throw new BiometryException(reason, message);
 	}

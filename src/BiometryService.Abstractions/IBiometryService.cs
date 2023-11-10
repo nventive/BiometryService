@@ -59,6 +59,7 @@ public interface IBiometryService
 	/// <summary>
 	/// Removes the ecrypted value in the platform secure storage.
 	/// </summary>
-	/// <param name="keyName"></param>
+	/// <param name="keyName">The name of the Key.</param>
+	/// <exception cref="BiometryException">Thrown for general biometry errors.</exception>
 	void Remove(string keyName);
 }

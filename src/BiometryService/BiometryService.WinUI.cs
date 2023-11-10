@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Windows.Foundation.Collections;
 using Windows.Security.Credentials;
 using Windows.Storage;
@@ -19,52 +18,50 @@ namespace BiometryService;
 /// <remarks>
 /// This implementation is not fully implemented.
 /// </remarks>
-public sealed partial class BiometryService : IBiometryService
+public sealed class BiometryService : BaseBiometryService
 {
-	private readonly ILogger _logger;
 	private readonly IPropertySet _keys;
 	private readonly SemaphoreSlim _semaphore;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="BiometryService" /> class.
 	/// </summary>
-	/// <param name="loggerFactory">Logger factory</param>
-	public BiometryService(ILoggerFactory loggerFactory = null)
+	/// <param name="loggerFactory">The logger factory.</param>
+	public BiometryService(ILoggerFactory loggerFactory = null) : base(loggerFactory)
 	{
-		_logger = loggerFactory?.CreateLogger<IBiometryService>() ?? NullLogger<IBiometryService>.Instance;
 		_keys = ApplicationData.Current.LocalSettings.Values;
 		_semaphore = new SemaphoreSlim(1, 1);
 	}
 
 	/// <inheritdoc />
-	public async Task<BiometryCapabilities> GetCapabilities(CancellationToken ct)
+	public override async Task<BiometryCapabilities> GetCapabilities(CancellationToken ct)
 	{
 		var windowsHelloAvailable = await KeyCredentialManager.IsSupportedAsync().AsTask(ct);
 		return new BiometryCapabilities(windowsHelloAvailable ? BiometryType.Fingerprint : BiometryType.None, windowsHelloAvailable, true);
 	}
 
 	/// <inheritdoc />
-	public async Task ScanBiometry(CancellationToken ct)
+	public override async Task ScanBiometry(CancellationToken ct)
 	{
-		if (_logger.IsEnabled(LogLevel.Debug))
+		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug("Authenticating the fingerprint.");
+			Logger.LogDebug("Authenticating the fingerprint.");
 		}
 
 		await KeyCredentialManager.IsSupportedAsync();
 
-		if (_logger.IsEnabled(LogLevel.Information))
+		if (Logger.IsEnabled(LogLevel.Information))
 		{
-			_logger.LogInformation("Successfully authenticated the fingerprint.");
+			Logger.LogInformation("Successfully authenticated the fingerprint.");
 		}
 	}
 
-	/// <inheritdoc />
-	public async Task Encrypt(CancellationToken ct, string key, string value)
+	/// <inheritdoc/>
+	public override async Task Encrypt(CancellationToken ct, string key, string value)
 	{
-		if (_logger.IsEnabled(LogLevel.Debug))
+		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug($"Encrypting the fingerprint (key name: '{key}').");
+			Logger.LogDebug($"Encrypting the fingerprint (key name: '{key}').");
 		}
 
 		ValidateProperty(key, nameof(key));
@@ -100,9 +97,9 @@ public sealed partial class BiometryService : IBiometryService
 
 					cryptoStream.FlushFinalBlock();
 
-					if (_logger.IsEnabled(LogLevel.Information))
+					if (Logger.IsEnabled(LogLevel.Information))
 					{
-						_logger.LogInformation($"Successfully encrypted the fingerprint (key name: '{key}').");
+						Logger.LogInformation($"Successfully encrypted the fingerprint (key name: '{key}').");
 					}
 				}
 			}
@@ -114,11 +111,11 @@ public sealed partial class BiometryService : IBiometryService
 	}
 
 	/// <inheritdoc/>
-	public Task<string> Decrypt(CancellationToken ct, string key)
+	public override Task<string> Decrypt(CancellationToken ct, string key)
 	{
-		if (_logger.IsEnabled(LogLevel.Debug))
+		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug($"Decrypting the fingerprint (key name: '{key}').");
+			Logger.LogDebug($"Decrypting the fingerprint (key name: '{key}').");
 		}
 
 		ValidateProperty(key, nameof(key));
@@ -127,7 +124,7 @@ public sealed partial class BiometryService : IBiometryService
 	}
 
 	/// <inheritdoc />
-	public void Remove(string key)
+	public override void Remove(string key)
 	{
 		if (_keys.ContainsKey(key))
 		{
