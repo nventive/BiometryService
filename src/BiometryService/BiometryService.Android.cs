@@ -23,7 +23,7 @@ namespace BiometryService;
 /// <summary>
 /// Implementation of the <see cref="IBiometryService" /> for Android.
 /// </summary>
-public sealed partial class BiometryService : IBiometryService
+public sealed class BiometryService : BaseBiometryService
 {
 	private const string ANDROID_KEYSTORE = "AndroidKeyStore"; // Android constant, cannot be changed.
 	private const string CIPHER_NAME = "AES/CBC/PKCS7Padding";
@@ -31,7 +31,6 @@ public sealed partial class BiometryService : IBiometryService
 
 	private readonly FragmentActivity _activity;
 	private readonly Func<BiometricPrompt.PromptInfo> _promptInfoBuilder;
-	private readonly ILogger _logger;
 	private readonly Context _applicationContext;
 	private readonly BiometricManager _biometricManager;
 	private readonly KeyStore _keyStore;
@@ -44,11 +43,14 @@ public sealed partial class BiometryService : IBiometryService
 	/// <param name="fragmentActivity"><see cref="FragmentActivity"/>.</param>
 	/// <param name="promptInfoBuilder">Biometry configuration.</param>
 	/// <param name="loggerFactory"><see cref="ILoggerFactory"/>.</param>
-	public BiometryService(FragmentActivity fragmentActivity, Func<BiometricPrompt.PromptInfo> promptInfoBuilder, ILoggerFactory loggerFactory = null)
+	public BiometryService(
+		FragmentActivity fragmentActivity,
+		Func<BiometricPrompt.PromptInfo> promptInfoBuilder,
+		ILoggerFactory loggerFactory = null
+	) : base(loggerFactory)
 	{
 		_activity = fragmentActivity ?? throw new ArgumentNullException(nameof(fragmentActivity));
 		_promptInfoBuilder = promptInfoBuilder ?? throw new ArgumentNullException(nameof(promptInfoBuilder));
-		_logger = loggerFactory?.CreateLogger<IBiometryService>() ?? NullLogger<IBiometryService>.Instance;
 
 		_applicationContext = Application.Context;
 		_biometricManager = BiometricManager.From(_applicationContext);
@@ -58,7 +60,7 @@ public sealed partial class BiometryService : IBiometryService
 	}
 
 	/// <inheritdoc/>
-	public Task<BiometryCapabilities> GetCapabilities(CancellationToken ct)
+	public override Task<BiometryCapabilities> GetCapabilities(CancellationToken ct)
 	{
 		var biometryType = BiometryType.None;
 
@@ -79,17 +81,17 @@ public sealed partial class BiometryService : IBiometryService
 	}
 
 	/// <inheritdoc/>
-	public async Task ScanBiometry(CancellationToken ct)
+	public override async Task ScanBiometry(CancellationToken ct)
 	{
 		await AuthenticateBiometry(ct);
 	}
 
 	/// <inheritdoc/>
-	public async Task Encrypt(CancellationToken ct, string keyName, string value)
+	public override async Task Encrypt(CancellationToken ct, string keyName, string value)
 	{
-		if (_logger.IsEnabled(LogLevel.Debug))
+		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug($"Encrypting the fingerprint for the key '{keyName}'.");
+			Logger.LogDebug($"Encrypting the fingerprint for the key '{keyName}'.");
 		}
 
 		await ValidateBiometryCapabilities(ct);
@@ -104,9 +106,9 @@ public sealed partial class BiometryService : IBiometryService
 		iv.CopyTo(bytes, 0);
 		encryptedData.CopyTo(bytes, iv.Length);
 
-		if (_logger.IsEnabled(LogLevel.Information))
+		if (Logger.IsEnabled(LogLevel.Information))
 		{
-			_logger.LogInformation($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
+			Logger.LogInformation($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
 		}
 
 		var encodedData = Base64.EncodeToString(bytes, Base64Flags.NoWrap);
@@ -115,11 +117,11 @@ public sealed partial class BiometryService : IBiometryService
 	}
 
 	/// <inheritdoc/>
-	public async Task<string> Decrypt(CancellationToken ct, string keyName)
+	public override async Task<string> Decrypt(CancellationToken ct, string keyName)
 	{
-		if (_logger.IsEnabled(LogLevel.Debug))
+		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug($"Decrypting the fingerprint for the key '{keyName}'.");
+			Logger.LogDebug($"Decrypting the fingerprint for the key '{keyName}'.");
 		}
 
 		await ValidateBiometryCapabilities(ct);
@@ -156,26 +158,42 @@ public sealed partial class BiometryService : IBiometryService
 		var result = await AuthenticateBiometry(ct, crypto);
 		var decryptedData = result.CryptoObject.Cipher.DoFinal(buffer);
 
-		if (_logger.IsEnabled(LogLevel.Information))
+		if (Logger.IsEnabled(LogLevel.Information))
 		{
-			_logger.LogInformation($"Succcessfully decrypted the fingerprint for the key '{keyName}'.");
+			Logger.LogInformation($"Succcessfully decrypted the fingerprint for the key '{keyName}'.");
 		}
 
 		return Encoding.ASCII.GetString(decryptedData);
 	}
 
 	/// <inheritdoc/>
-	public void Remove(string keyName)
+	public override void Remove(string keyName)
 	{
-		var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
-		sharedpref.Edit().Remove(keyName).Apply();
+		try
+		{
+			var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
+			sharedpref.Edit().Remove(keyName).Apply();
+
+			if (Logger.IsEnabled(LogLevel.Debug))
+			{
+				Logger.LogDebug("The key '{keyName}' has been successfully removed.", keyName);
+			}
+		}
+		catch (System.Exception)
+		{
+			if (Logger.IsEnabled(LogLevel.Debug))
+			{
+				Logger.LogDebug("The key '{keyName}' has not been successfully removed.", keyName);
+			}
+			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while removing the key '{keyName}'.");
+		}
 	}
 
 	private async Task<BiometricPrompt.AuthenticationResult> AuthenticateBiometry(CancellationToken ct, BiometricPrompt.CryptoObject crypto = null)
 	{
-		if (_logger.IsEnabled(LogLevel.Debug))
+		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug($"Start authenticating the user biometry.");
+			Logger.LogDebug($"Start authenticating the user biometry.");
 		}
 
 		// TODO: Refactor this. Why are we doing a version check? Could we juste use the parameter used by the user isntead of BiometricManager.Authenticators.BiometricStrong?
@@ -194,9 +212,9 @@ public sealed partial class BiometryService : IBiometryService
 			return await PromptBiometryAuthentication(ct, crypto);
 		}
 
-		if (_logger.IsEnabled(LogLevel.Error))
+		if (Logger.IsEnabled(LogLevel.Error))
 		{
-			_logger.LogError($"The device cannot authenticate with biometry.");
+			Logger.LogError($"The device cannot authenticate with biometry.");
 		}
 
 		var reason = BiometryExceptionReason.Failed;
@@ -228,7 +246,7 @@ public sealed partial class BiometryService : IBiometryService
 		_authenticationCompletionSource = new TaskCompletionSource<BiometricPrompt.AuthenticationResult>();
 
 		// Prepare and show UI.
-		var callback = new AuthenticationCallback(_authenticationCompletionSource, _logger);
+		var callback = new AuthenticationCallback(_authenticationCompletionSource, Logger);
 		var executor = ContextCompat.GetMainExecutor(_applicationContext);
 		var biometricPrompt = new BiometricPrompt(_activity, executor, callback);
 
@@ -260,9 +278,9 @@ public sealed partial class BiometryService : IBiometryService
 
 		if (authenticationTask.IsCompletedSuccessfully)
 		{
-			if (_logger.IsEnabled(LogLevel.Information))
+			if (Logger.IsEnabled(LogLevel.Information))
 			{
-				_logger.LogInformation($"Successfully authenticated and processed the biometric).");
+				Logger.LogInformation($"Successfully authenticated and processed the biometric).");
 			}
 
 			return authenticationTask.Result;
@@ -287,9 +305,9 @@ public sealed partial class BiometryService : IBiometryService
 			_keyStore.DeleteEntry(keyName);
 		}
 
-		if (_logger.IsEnabled(LogLevel.Debug))
+		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			_logger.LogDebug($"Generating a symmetric pair (key name: '{keyName}').");
+			Logger.LogDebug($"Generating a symmetric pair (key name: '{keyName}').");
 		}
 
 		var keygen = KeyGenerator.GetInstance(KeyProperties.KeyAlgorithmAes, ANDROID_KEYSTORE);
@@ -304,9 +322,9 @@ public sealed partial class BiometryService : IBiometryService
 
 		keygen.GenerateKey();
 
-		if (_logger.IsEnabled(LogLevel.Information))
+		if (Logger.IsEnabled(LogLevel.Information))
 		{
-			_logger.LogInformation($"Successfully generated a symmetric pair (key name: '{keyName}').");
+			Logger.LogInformation($"Successfully generated a symmetric pair (key name: '{keyName}').");
 		}
 
 		cipher.Init(CipherMode.EncryptMode, _keyStore.GetKey(keyName, null));
@@ -328,16 +346,16 @@ public sealed partial class BiometryService : IBiometryService
 			}
 			catch (KeyPermanentlyInvalidatedException)
 			{
-				if (_logger.IsEnabled(LogLevel.Error))
+				if (Logger.IsEnabled(LogLevel.Error))
 				{
-					_logger.LogError($"Key '{keyName}' has been permanently invalidated.");
+					Logger.LogError($"Key '{keyName}' has been permanently invalidated.");
 				}
 
 				_keyStore.DeleteEntry(keyName);
 
-				if (_logger.IsEnabled(LogLevel.Information))
+				if (Logger.IsEnabled(LogLevel.Information))
 				{
-					_logger.LogInformation($"Permanently invalidated key '{keyName}' has been removed successfully.");
+					Logger.LogInformation($"Permanently invalidated key '{keyName}' has been removed successfully.");
 				}
 
 				throw new BiometryException(BiometryExceptionReason.KeyInvalidated, "Something went wrong while generating the CryptoObject used to decrypt.");
@@ -345,9 +363,9 @@ public sealed partial class BiometryService : IBiometryService
 		}
 		else
 		{
-			if (_logger.IsEnabled(LogLevel.Error))
+			if (Logger.IsEnabled(LogLevel.Error))
 			{
-				_logger.LogError($"Key '{keyName}' not found.");
+				Logger.LogError($"Key '{keyName}' not found.");
 			}
 			throw new BiometryException(BiometryExceptionReason.KeyInvalidated, $"Key '{keyName}' not found.");
 		}
@@ -356,19 +374,19 @@ public sealed partial class BiometryService : IBiometryService
 	private class AuthenticationCallback : BiometricPrompt.AuthenticationCallback
 	{
 		private readonly TaskCompletionSource<BiometricPrompt.AuthenticationResult> _tcs;
-		private readonly ILogger _logger;
+		private readonly ILogger Logger;
 
 		public AuthenticationCallback(TaskCompletionSource<BiometricPrompt.AuthenticationResult> tcs, ILogger logger)
 		{
 			_tcs = tcs;
-			_logger = logger;
+			Logger = logger;
 		}
 
 		public override void OnAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result)
 		{
-			if (_logger.IsEnabled(LogLevel.Information))
+			if (Logger.IsEnabled(LogLevel.Information))
 			{
-				_logger.LogInformation("User attempt to use biometry succeeded.");
+				Logger.LogInformation("User attempt to use biometry succeeded.");
 			}
 
 			_tcs.TrySetResult(result);
@@ -379,9 +397,9 @@ public sealed partial class BiometryService : IBiometryService
 			// This methods is called after an attempt to use biometry.
 			// It does not means that it will close the prompt yet.
 
-			if (_logger.IsEnabled(LogLevel.Warning))
+			if (Logger.IsEnabled(LogLevel.Warning))
 			{
-				_logger.LogWarning("User attempt to use biometry failed.");
+				Logger.LogWarning("User attempt to use biometry failed.");
 			}
 		}
 

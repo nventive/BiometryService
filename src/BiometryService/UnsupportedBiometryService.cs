@@ -7,7 +7,7 @@ namespace BiometryService;
 /// <summary>
 /// This implementation of <see cref="IBiometryService"/> only supports <see cref="GetCapabilities"/> which explicitly yields no biometric capabilities.
 /// </summary>
-public sealed partial class UnsupportedBiometryService : IBiometryService
+public sealed class UnsupportedBiometryService : IBiometryService
 {
 	/// <inheritdoc />
 	public Task<BiometryCapabilities> GetCapabilities(CancellationToken ct)

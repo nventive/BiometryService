@@ -1,4 +1,4 @@
-# Biometry Service
+﻿# Biometry Service
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE) ![Version](https://img.shields.io/nuget/v/BiometryService?style=flat-square) ![Downloads](https://img.shields.io/nuget/dt/BiometryService?style=flat-square)
 
@@ -100,7 +100,7 @@ This library offers a simple contract to use the biometry across Android, iOS an
 
 ## Features
 
-### Platform Compatibilities 
+### Platform Compatibilities
 
 The `IBiometryService` has severals methods.
 
@@ -109,11 +109,27 @@ As of now, this is the list of features available per platform.
 | Methods          | iOS     | Android | WinUI   | UWP     |
 | ---------------- | :-----: | :-----: | :-----: | :-----: |
 | `GetCapability`  | ✔ | ✔ | ✔ | ✔ |
-| `ScanBiometry`	 | ✔ | ✔ | ✔ | ✔ | 
+| `ScanBiometry`	 | ✔ | ✔ | ✔ | ✔ |
 | `Encrypt`        | ✔ | ✔ | ✔ | ✔ |
 | `Decrypt`        | ✔ | ✔ | ❌ | ❌ |
 | `Remove`         | ✔ | ✔ | ✔ | ✔ |
 
+### Tests
+
+It's also possible to use a fake implementation of `IBiometryService` named `FakeBiometryService` for testing purposes only.
+
+This fake implementation doesn't actually encrypt anything, the key and value pairs are stored in memory.
+
+The fake implementation behavior can be customized by using constructor parameters.
+
+``` csharp
+var fakeBiometryService = new FakeBiometryService
+{
+   biometryType: BiometryType.None,
+   isBiometryEnabled: false,
+   isPasscodeSet: false
+};
+```
 
 ### Error Handling
 
