@@ -10,12 +10,15 @@
     configFilePath: $(Build.SourcesDirectory)/build/gitversion.yml
   displayName: 'Calculate version'
 
-- task: DotNetCoreCLI@2
-  displayName: 'Install dotnet 6 workloads'
+- script: dotnet workload install android ios macos maccatalyst"
+  displayName: 'Install .NET workloads'
+
+- task: JavaToolInstaller@0
+  displayName: "Install Java SDK 11"
   inputs:
-    command: 'custom'
-    custom: 'workload'
-    arguments: 'install android ios macos maccatalyst'
+    versionSpec: '11'
+    jdkArchitectureOption: 'x64'
+    jdkSourceOption: 'PreInstalled'
 
 - task: MSBuild@1
   displayName: 'Restore solution packages'
