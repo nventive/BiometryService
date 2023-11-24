@@ -41,47 +41,47 @@ public sealed class FakeBiometryService : BaseBiometryService
 	}
 
 	/// <inheritdoc/>
-	public override async Task<string> Decrypt(CancellationToken ct, string keyName)
+	public override async Task<string> Decrypt(CancellationToken ct, string key)
 	{
 		await ValidateBiometryCapabilities(ct);
 
-		if (_keyValuePairs.TryGetValue(keyName, out var keyValue))
+		if (_keyValuePairs.TryGetValue(key, out var value))
 		{
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("The key '{keyName}' has been successfully decrypted.", keyName);
+				Logger.LogDebug("The key '{key}' has been successfully decrypted.", key);
 			}
-			return keyValue;
+			return value;
 		}
-		throw new BiometryException(BiometryExceptionReason.KeyInvalidated, $"Key '{keyName}' not found.");
+		throw new BiometryException(BiometryExceptionReason.KeyInvalidated, $"Key '{key}' not found.");
 	}
 
 	/// <inheritdoc/>
-	public override async Task Encrypt(CancellationToken ct, string keyName, string keyValue)
+	public override async Task Encrypt(CancellationToken ct, string key, string value)
 	{
 		try
 		{
 			await ValidateBiometryCapabilities(ct);
 
-			if (_keyValuePairs.ContainsKey(keyName))
+			if (_keyValuePairs.ContainsKey(key))
 			{
-				_keyValuePairs.Remove(keyName);
+				_keyValuePairs.Remove(key);
 			}
 
-			_keyValuePairs.Add(keyName, keyValue);
+			_keyValuePairs.Add(key, value);
 
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("The key '{keyName}' has been successfully encrypted.", keyName);
+				Logger.LogDebug("The key '{key}' has been successfully encrypted.", key);
 			}
 		}
 		catch (Exception)
 		{
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("The key '{keyName}' has not been successfully encrypted.", keyName);
+				Logger.LogDebug("The key '{key}' has not been successfully encrypted.", key);
 			}
-			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while saving the key '{keyName}'.");
+			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while saving the key '{key}'.");
 		}
 	}
 
@@ -96,16 +96,16 @@ public sealed class FakeBiometryService : BaseBiometryService
 	}
 
 	/// <inheritdoc/>
-	public override void Remove(string keyName)
+	public override void Remove(string key)
 	{
-		if (_keyValuePairs.Remove(keyName))
+		if (_keyValuePairs.Remove(key))
 		{
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("The key '{keyName}' has been successfully removed.", keyName);
+				Logger.LogDebug("The key '{key}' has been successfully removed.", key);
 			}
 		}
-		throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while removing the key '{keyName}'.");
+		throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while removing the key '{key}'.");
 	}
 
 	/// <inheritdoc/>

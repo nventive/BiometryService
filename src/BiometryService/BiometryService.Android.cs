@@ -87,16 +87,16 @@ public sealed class BiometryService : BaseBiometryService
 	}
 
 	/// <inheritdoc/>
-	public override async Task Encrypt(CancellationToken ct, string keyName, string value)
+	public override async Task Encrypt(CancellationToken ct, string key, string value)
 	{
 		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			Logger.LogDebug($"Encrypting the fingerprint for the key '{keyName}'.");
+			Logger.LogDebug($"Encrypting the fingerprint for the key '{key}'.");
 		}
 
 		await ValidateBiometryCapabilities(ct);
 
-		var crypto = CreateCryptoObject(keyName);
+		var crypto = CreateCryptoObject(key);
 		var result = await AuthenticateBiometry(ct, crypto);
 		var valueToEncrypt = Encoding.UTF8.GetBytes(value);
 		var encryptedData = result.CryptoObject.Cipher.DoFinal(valueToEncrypt);
@@ -108,26 +108,26 @@ public sealed class BiometryService : BaseBiometryService
 
 		if (Logger.IsEnabled(LogLevel.Information))
 		{
-			Logger.LogInformation($"Succcessfully encrypted the fingerprint for the key'{keyName}'.");
+			Logger.LogInformation($"Succcessfully encrypted the fingerprint for the key '{key}'.");
 		}
 
 		var encodedData = Base64.EncodeToString(bytes, Base64Flags.NoWrap);
 		var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
-		sharedpref.Edit().PutString(keyName, encodedData).Apply();
+		sharedpref.Edit().PutString(key, encodedData).Apply();
 	}
 
 	/// <inheritdoc/>
-	public override async Task<string> Decrypt(CancellationToken ct, string keyName)
+	public override async Task<string> Decrypt(CancellationToken ct, string key)
 	{
 		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			Logger.LogDebug($"Decrypting the fingerprint for the key '{keyName}'.");
+			Logger.LogDebug($"Decrypting the fingerprint for the key '{key}'.");
 		}
 
 		await ValidateBiometryCapabilities(ct);
 
 		var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
-		var storedData = sharedpref.GetString(keyName, null);
+		var storedData = sharedpref.GetString(key, null);
 
 		if (storedData == null)
 		{
@@ -154,38 +154,38 @@ public sealed class BiometryService : BaseBiometryService
 			data.Length - 16
 		);
 
-		var crypto = GetCryptoObject(keyName, iv);
+		var crypto = GetCryptoObject(key, iv);
 		var result = await AuthenticateBiometry(ct, crypto);
 		var decryptedData = result.CryptoObject.Cipher.DoFinal(buffer);
 
 		if (Logger.IsEnabled(LogLevel.Information))
 		{
-			Logger.LogInformation($"Succcessfully decrypted the fingerprint for the key '{keyName}'.");
+			Logger.LogInformation($"Succcessfully decrypted the fingerprint for the key '{key}'.");
 		}
 
 		return Encoding.ASCII.GetString(decryptedData);
 	}
 
 	/// <inheritdoc/>
-	public override void Remove(string keyName)
+	public override void Remove(string key)
 	{
 		try
 		{
 			var sharedpref = _applicationContext.GetSharedPreferences(PREFERENCE_NAME, FileCreationMode.Private);
-			sharedpref.Edit().Remove(keyName).Apply();
+			sharedpref.Edit().Remove(key).Apply();
 
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("The key '{keyName}' has been successfully removed.", keyName);
+				Logger.LogDebug("The key '{key}' has been successfully removed.", key);
 			}
 		}
 		catch (System.Exception)
 		{
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("The key '{keyName}' has not been successfully removed.", keyName);
+				Logger.LogDebug("The key '{key}' has not been successfully removed.", key);
 			}
-			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while removing the key '{keyName}'.");
+			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while removing the key '{key}'.");
 		}
 	}
 
@@ -296,23 +296,23 @@ public sealed class BiometryService : BaseBiometryService
 		}
 	}
 
-	private BiometricPrompt.CryptoObject CreateCryptoObject(string keyName)
+	private BiometricPrompt.CryptoObject CreateCryptoObject(string key)
 	{
 		var cipher = Cipher.GetInstance(CIPHER_NAME);
 
-		if (_keyStore.IsKeyEntry(keyName))
+		if (_keyStore.IsKeyEntry(key))
 		{
-			_keyStore.DeleteEntry(keyName);
+			_keyStore.DeleteEntry(key);
 		}
 
 		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			Logger.LogDebug($"Generating a symmetric pair (key name: '{keyName}').");
+			Logger.LogDebug($"Generating a symmetric pair (key name: '{key}').");
 		}
 
 		var keygen = KeyGenerator.GetInstance(KeyProperties.KeyAlgorithmAes, ANDROID_KEYSTORE);
 
-		keygen.Init(new KeyGenParameterSpec.Builder(keyName, KeyStorePurpose.Encrypt | KeyStorePurpose.Decrypt)
+		keygen.Init(new KeyGenParameterSpec.Builder(key, KeyStorePurpose.Encrypt | KeyStorePurpose.Decrypt)
 			.SetBlockModes(KeyProperties.BlockModeCbc)
 			.SetEncryptionPaddings(KeyProperties.EncryptionPaddingPkcs7)
 			.SetUserAuthenticationRequired(true)
@@ -324,23 +324,23 @@ public sealed class BiometryService : BaseBiometryService
 
 		if (Logger.IsEnabled(LogLevel.Information))
 		{
-			Logger.LogInformation($"Successfully generated a symmetric pair (key name: '{keyName}').");
+			Logger.LogInformation($"Successfully generated a symmetric pair (key name: '{key}').");
 		}
 
-		cipher.Init(CipherMode.EncryptMode, _keyStore.GetKey(keyName, null));
+		cipher.Init(CipherMode.EncryptMode, _keyStore.GetKey(key, null));
 
 		return new BiometricPrompt.CryptoObject(cipher);
 	}
 
-	private BiometricPrompt.CryptoObject GetCryptoObject(string keyName, byte[] iv = null)
+	private BiometricPrompt.CryptoObject GetCryptoObject(string key, byte[] iv = null)
 	{
 		var cipher = Cipher.GetInstance(CIPHER_NAME);
 
-		if (_keyStore.IsKeyEntry(keyName))
+		if (_keyStore.IsKeyEntry(key))
 		{
 			try
 			{
-				cipher.Init(CipherMode.DecryptMode, _keyStore.GetKey(keyName, null), new IvParameterSpec(iv));
+				cipher.Init(CipherMode.DecryptMode, _keyStore.GetKey(key, null), new IvParameterSpec(iv));
 
 				return new BiometricPrompt.CryptoObject(cipher);
 			}
@@ -348,14 +348,14 @@ public sealed class BiometryService : BaseBiometryService
 			{
 				if (Logger.IsEnabled(LogLevel.Error))
 				{
-					Logger.LogError($"Key '{keyName}' has been permanently invalidated.");
+					Logger.LogError($"Key '{key}' has been permanently invalidated.");
 				}
 
-				_keyStore.DeleteEntry(keyName);
+				_keyStore.DeleteEntry(key);
 
 				if (Logger.IsEnabled(LogLevel.Information))
 				{
-					Logger.LogInformation($"Permanently invalidated key '{keyName}' has been removed successfully.");
+					Logger.LogInformation($"Permanently invalidated key '{key}' has been removed successfully.");
 				}
 
 				throw new BiometryException(BiometryExceptionReason.KeyInvalidated, "Something went wrong while generating the CryptoObject used to decrypt.");
@@ -365,9 +365,9 @@ public sealed class BiometryService : BaseBiometryService
 		{
 			if (Logger.IsEnabled(LogLevel.Error))
 			{
-				Logger.LogError($"Key '{keyName}' not found.");
+				Logger.LogError($"Key '{key}' not found.");
 			}
-			throw new BiometryException(BiometryExceptionReason.KeyInvalidated, $"Key '{keyName}' not found.");
+			throw new BiometryException(BiometryExceptionReason.KeyInvalidated, $"Key '{key}' not found.");
 		}
 	}
 
