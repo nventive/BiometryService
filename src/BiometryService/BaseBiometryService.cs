@@ -25,16 +25,16 @@ public abstract class BaseBiometryService : IBiometryService
 	}
 
 	/// <inheritdoc/>
-	public abstract Task<string> Decrypt(CancellationToken ct, string keyName);
+	public abstract Task<string> Decrypt(CancellationToken ct, string key);
 
 	/// <inheritdoc/>
-	public abstract Task Encrypt(CancellationToken ct, string keyName, string keyValue);
+	public abstract Task Encrypt(CancellationToken ct, string key, string value);
 
 	/// <inheritdoc/>
 	public abstract Task<BiometryCapabilities> GetCapabilities(CancellationToken ct);
 
 	/// <inheritdoc/>
-	public abstract void Remove(string keyName);
+	public abstract void Remove(string key);
 
 	/// <inheritdoc/>
 	public abstract Task ScanBiometry(CancellationToken ct);

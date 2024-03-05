@@ -169,7 +169,7 @@ await biometryService.ScanBiometry(CancellationToken.None);
 This method encrypts a value and stores it into the platform secure storage with the given key name.
 
 ``` cs
-await biometryService.Encrypt(CancellationToken.None, "KeyName", "KeyValue");
+await biometryService.Encrypt(CancellationToken.None, "Key", "Value");
 ```
 
 On Android, a new `CryptoObject` from `AndroidX.Biometric` is created with a key as a parameter. Then the data is encrypted and presented to the `BiometricPrompt` manager.
@@ -182,7 +182,7 @@ On iOS, the `SecKeyChain` is used to store a string linked to a key. The OS is i
 This method decrypts and gets the data associated to the given key.
 
 ``` cs
-await biometryService.Decrypt(CancellationToken.None, "KeyName");
+await biometryService.Decrypt(CancellationToken.None, "Key");
 ```
 
 On Android, the method retrieves the shared preference encrypted data, then decrypts it with the secret as a parameter by presenting it to the `BiometricPrompt` manager.
@@ -194,7 +194,7 @@ On iOS, the method retrieves the encrypted data from the `SecKeyChain` with the 
 This method removes the ecrypted value from the platform secure storage.
 
 ``` cs
-biometryService.Remove("KeyName");
+biometryService.Remove("Key");
 ```
 
 On Android, the method removes the encrypted data from the shared preferences.

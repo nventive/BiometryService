@@ -34,32 +34,32 @@ public interface IBiometryService
 	Task ScanBiometry(CancellationToken ct);
 
 	/// <summary>
-	/// Encrypts the value and stores it into the platform secure storage with the given <paramref name="keyName"/>.
+	/// Encrypts the value and stores it into the platform secure storage with the given <paramref name="key"/>.
 	/// </summary>
 	/// <remarks>
 	/// Catch and throw <see cref="BiometryException"/> for general biometry errors.
 	/// </remarks>
 	/// <param name="ct"><see cref="CancellationToken" />.</param>
-	/// <param name="keyName">The name of the key.</param>
-	/// <param name="keyValue">The value to be encrypt.</param>
-	Task Encrypt(CancellationToken ct, string keyName, string keyValue);
+	/// <param name="key">The name of the key.</param>
+	/// <param name="value">The value to be encrypted.</param>
+	Task Encrypt(CancellationToken ct, string key, string value);
 
 	/// <summary>
-	/// Decrypts and gets the data associated to the given <paramref name="keyName"/>.
+	/// Decrypts and gets the data associated to the given <paramref name="key"/>.
 	/// </summary>
 	/// <remarks>
 	/// Catch and throw <see cref="BiometryException"/> for general biometry errors.
 	/// Catch and throw <see cref="OperationCanceledException"/> if the user cancelled the operation.
 	/// </remarks>
 	/// <param name="ct"><see cref="CancellationToken" />.</param>
-	/// <param name="keyName">The name of the Key.</param>
+	/// <param name="key">The name of the Key.</param>
 	/// <returns>The decrypted data associated to the key.</returns>
-	Task<string> Decrypt(CancellationToken ct, string keyName);
+	Task<string> Decrypt(CancellationToken ct, string key);
 
 	/// <summary>
 	/// Removes the ecrypted value in the platform secure storage.
 	/// </summary>
-	/// <param name="keyName">The name of the Key.</param>
+	/// <param name="key">The name of the Key.</param>
 	/// <exception cref="BiometryException">Thrown for general biometry errors.</exception>
-	void Remove(string keyName);
+	void Remove(string key);
 }

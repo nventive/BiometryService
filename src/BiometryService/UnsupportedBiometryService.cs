@@ -22,19 +22,19 @@ public sealed class UnsupportedBiometryService : IBiometryService
 	}
 
 	/// <inheritdoc />
-	public Task Encrypt(CancellationToken ct, string keyName, string keyValue)
+	public Task Encrypt(CancellationToken ct, string key, string value)
 	{
 		throw new NotSupportedException($"{nameof(UnsupportedBiometryService)} doesn't support encrypting key.");
 	}
 
 	/// <inheritdoc />
-	public Task<string> Decrypt(CancellationToken ct, string keyName)
+	public Task<string> Decrypt(CancellationToken ct, string key)
 	{
 		throw new NotSupportedException($"{nameof(UnsupportedBiometryService)} doesn't support decrypting key.");
 	}
 
 	/// <inheritdoc />
-	public void Remove(string keyName)
+	public void Remove(string key)
 	{
 		throw new NotSupportedException($"{nameof(UnsupportedBiometryService)} doesn't support removing encrypted key.");
 	}

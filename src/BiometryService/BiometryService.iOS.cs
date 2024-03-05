@@ -217,76 +217,76 @@ public sealed class BiometryService : BaseBiometryService
 	}
 
 	/// <inheritdoc/>
-	public override async Task Encrypt(CancellationToken ct, string keyName, string keyValue)
+	public override async Task Encrypt(CancellationToken ct, string key, string value)
 	{
 		try
 		{
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("Encrypting the key '{keyName}'.", keyName);
+				Logger.LogDebug("Encrypting the key '{key}'.", key);
 			}
 
 			await ValidateBiometryCapabilities(ct);
 
-			SetValueForKey(keyName, keyValue);
+			SetValueForKey(key, value);
 
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("The key '{keyName}' has been successfully encrypted.", keyName);
+				Logger.LogDebug("The key '{key}' has been successfully encrypted.", key);
 			}
 		}
 		catch
 		{
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("The key '{keyName}' has not been successfully encrypted.", keyName);
+				Logger.LogDebug("The key '{key}' has not been successfully encrypted.", key);
 			}
 			throw;
 		}
 	}
 
 	/// <inheritdoc/>
-	public override async Task<string> Decrypt(CancellationToken ct, string keyName)
+	public override async Task<string> Decrypt(CancellationToken ct, string key)
 	{
 		try
 		{
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("Decrypting the key '{keyName}'.", keyName);
+				Logger.LogDebug("Decrypting the key '{key}'.", key);
 			}
 
 			await ValidateBiometryCapabilities(ct);
 
-			var keyValue = GetValueForKey(keyName);
+			var value = GetValueForKey(key);
 
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("The key '{keyName}' has been successfully decrypted.", keyName);
+				Logger.LogDebug("The key '{key}' has been successfully decrypted.", key);
 			}
 
-			return keyValue;
+			return value;
 		}
 		catch
 		{
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("The key '{keyName}' has not been successfully decrypted.", keyName);
+				Logger.LogDebug("The key '{key}' has not been successfully decrypted.", key);
 			}
 			throw;
 		}
 	}
 
 	/// <inheritdoc/>
-	public override void Remove(string keyName)
+	public override void Remove(string key)
 	{
 		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			Logger.LogDebug("Removing the key '{keyName}'.", keyName);
+			Logger.LogDebug("Removing the key '{key}'.", key);
 		}
 
 		var record = new SecRecord(SecKind.GenericPassword)
 		{
-			Service = keyName.ToLowerInvariant(),
+			Service = key.ToLowerInvariant(),
 			UseOperationPrompt = _useOperationPrompt
 		};
 
@@ -295,14 +295,14 @@ public sealed class BiometryService : BaseBiometryService
 		{
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("The key '{keyName}' has not been successfully removed. Status = {status}.", keyName, status);
+				Logger.LogDebug("The key '{key}' has not been successfully removed. Status = {status}.", key, status);
 			}
-			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while removing the key '{keyName}'. Status = {status}.");
+			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while removing the key '{key}'. Status = {status}.");
 		}
 
 		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			Logger.LogDebug("The key '{keyName}' has been successfully removed.", keyName);
+			Logger.LogDebug("The key '{key}' has been successfully removed.", key);
 		}
 	}
 
@@ -328,19 +328,19 @@ public sealed class BiometryService : BaseBiometryService
 	/// <remarks>
 	/// If the key already exists, it will be replaced.
 	/// </remarks>
-	/// <param name="keyName">The key name.</param>
-	/// <param name="keyValue">The key value.</param>
+	/// <param name="key">The key name.</param>
+	/// <param name="value">The key value.</param>
 	/// <exception cref="BiometryException">.</exception>
-	private void SetValueForKey(string keyName, string keyValue)
+	private void SetValueForKey(string key, string value)
 	{
 		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			Logger.LogDebug("Saving the key '{keyName}'.", keyName);
+			Logger.LogDebug("Saving the key '{key}'.", key);
 		}
 
 		var record = new SecRecord(SecKind.GenericPassword)
 		{
-			Service = keyName.ToLowerInvariant(),
+			Service = key.ToLowerInvariant(),
 		};
 
 		// Check for duplicate key.
@@ -353,67 +353,67 @@ public sealed class BiometryService : BaseBiometryService
 				_fallbackOnPasscodeAuthentication ? SecAccessControlCreateFlags.UserPresence : SecAccessControlCreateFlags.BiometryCurrentSet
 			);
 
-			record.Generic = NSData.FromString(keyValue);
+			record.Generic = NSData.FromString(value);
 
 			var result = SecKeyChain.Add(record);
 			if (result is not SecStatusCode.Success)
 			{
-				throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while saving the key '{keyName}'. Status = {result}.");
+				throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while saving the key '{key}'. Status = {result}.");
 			}
 
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("Successfully saved the key '{keyName}'.", keyName);
+				Logger.LogDebug("Successfully saved the key '{key}'.", key);
 			}
 		}
 		else
 		{
-			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while checking for duplicate key '{keyName}'. Status = {status}.");
+			throw new BiometryException(BiometryExceptionReason.Failed, $"Something went wrong while checking for duplicate key '{key}'. Status = {status}.");
 		}
 	}
 
 	/// <summary>
 	/// Get the encrypted value for the key using biometry.
 	/// </summary>
-	/// <param name="keyName">The key name.</param>
+	/// <param name="key">The key name.</param>
 	/// <returns>Key value.</returns>
 	/// <exception cref="BiometryException">.</exception>
 	/// <exception cref="OperationCanceledException">.</exception>
-	private string GetValueForKey(string keyName)
+	private string GetValueForKey(string key)
 	{
 		if (Logger.IsEnabled(LogLevel.Debug))
 		{
-			Logger.LogDebug("Retrieving the key '{keyName}'.", keyName);
+			Logger.LogDebug("Retrieving the key '{key}'.", key);
 		}
 
 		var record = new SecRecord(SecKind.GenericPassword)
 		{
-			Service = keyName.ToLowerInvariant(),
+			Service = key.ToLowerInvariant(),
 			UseOperationPrompt = _useOperationPrompt
 		};
 
-		var key = SecKeyChain.QueryAsRecord(record, out var result);
+		var keyResult = SecKeyChain.QueryAsRecord(record, out var result);
 
 		if (result is SecStatusCode.Success)
 		{
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("Successfully retrieved value of the key '{keyName}'.", keyName);
+				Logger.LogDebug("Successfully retrieved value of the key '{key}'.", key);
 			}
-			return key.Generic.ToString();
+			return keyResult.Generic.ToString();
 		}
 
 		var reason = BiometryExceptionReason.Failed;
-		var message = $"Something went wrong while retrieving value of the key '{keyName}'.";
+		var message = $"Something went wrong while retrieving value of the key '{key}'.";
 
 		switch (result)
 		{
 			case SecStatusCode.AuthFailed:
 				reason = BiometryExceptionReason.Failed;
-				message = $"Authentication failed. Could not retrieve value of the key '{keyName}'.";
+				message = $"Authentication failed. Could not retrieve value of the key '{key}'.";
 				break;
 			case SecStatusCode.ItemNotFound:
-				message = $"Key '{keyName}' not found.";
+				message = $"Key '{key}' not found.";
 				reason = BiometryExceptionReason.KeyInvalidated;
 				break;
 			case SecStatusCode.UserCanceled:
