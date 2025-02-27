@@ -1,13 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
+		<LangVersion>12.0</LangVersion>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
 		<TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+		<SupportedOSPlatformVersion>10.0.20348.0</SupportedOSPlatformVersion>
 		<RootNamespace>BiometryService.SampleApp.Uno.WinUI</RootNamespace>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
-		<Platforms>x86;x64;arm64</Platforms>
-		<PublishProfile>win10-$(Platform).pubxml</PublishProfile>
 		<UseWinUI>true</UseWinUI>
+		<Platforms>x86;x64;arm64</Platforms>
+		<RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+		<SelfContained>true</SelfContained>
+		<PublishProfile>win-$(Platform).pubxml</PublishProfile>
+		<EnablePreviewMsixTooling>true</EnablePreviewMsixTooling>
+		<Configurations>Debug;Release</Configurations>
 		<EnablePreviewMsixTooling>true</EnablePreviewMsixTooling>
 		<DefineConstants>$(DefineConstants);WINUI</DefineConstants>
 	</PropertyGroup>
@@ -27,8 +33,8 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Filter" Version="1.1.1" />
 		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.1.3" />
 		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22000.194" />
-		<PackageReference Include="Uno.Core" Version="4.0.1" />
-		<PackageReference Include="Uno.WinUI" Version="4.5.14" />
+		<PackageReference Include="Uno.Core" Version="4.1.1" />
+		<PackageReference Include="Uno.WinUI" Version="5.2.121" />
 		<Manifest Include="$(ApplicationManifest)" />
 	</ItemGroup>
 
