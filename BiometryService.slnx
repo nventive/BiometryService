@@ -1,0 +1,33 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="ARM" />
+    <Platform Name="ARM64" />
+    <Platform Name="iOS" />
+    <Platform Name="iPhone" />
+    <Platform Name="iPhoneSimulator" />
+    <Platform Name="NuGet" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Library/">
+    <Project Path="src/BiometryService.Abstractions/BiometryService.Abstractions.csproj" />
+    <Project Path="src/BiometryService/BiometryService.csproj" />
+  </Folder>
+  <Folder Name="/Samples/">
+    <Project Path="samples/BiometryService.SampleApp.Uno.Mobile/BiometryService.SampleApp.Uno.Mobile.csproj" />
+    <Project Path="samples/BiometryService.SampleApp.Uno.Shared/BiometryService.SampleApp.Uno.Shared.shproj" Id="6279c845-92f8-4333-ab99-3d213163593c" />
+    <Project Path="samples/BiometryService.SampleApp.Uno.WinUI/BiometryService.SampleApp.Uno.WinUI.csproj">
+      <Platform Solution="*|Any CPU" Project="x64" />
+      <Platform Solution="*|ARM" Project="x64" />
+      <Platform Solution="*|ARM64" Project="arm64" />
+      <Platform Solution="*|iOS" Project="x64" />
+      <Platform Solution="*|iPhone" Project="x64" />
+      <Platform Solution="*|iPhoneSimulator" Project="x64" />
+      <Platform Solution="*|NuGet" Project="x64" />
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="*|x86" Project="x86" />
+      <Deploy />
+    </Project>
+  </Folder>
+</Solution>

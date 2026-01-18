@@ -42,7 +42,7 @@ namespace BiometryService.SampleApp.Uno
 		{
 			Instance = this;
 
-			ConfigureFilters(global::Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory);
+			ConfigureLogging();
 
 			this.InitializeComponent();
 
@@ -143,54 +143,50 @@ namespace BiometryService.SampleApp.Uno
 		/// <summary>
 		/// Configures global logging
 		/// </summary>
-		/// <param name="factory"></param>
-		static void ConfigureFilters(ILoggerFactory factory)
+		static void ConfigureLogging()
 		{
-			factory
-				.WithFilter(new FilterLoggerSettings
-					{
-					{ "Uno", LogLevel.Warning },
-					{ "Windows", LogLevel.Warning },
+			Instance.LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
+			{
+				builder.AddConsole()
+					.AddFilter("Uno", LogLevel.Warning)
+					.AddFilter("Windows", LogLevel.Warning);
 
-					// Debug JS interop
-					// { "Uno.Foundation.WebAssemblyRuntime", LogLevel.Debug },
+				// Add console logging with appropriate log level
 
-					// Generic Xaml events
-					// { "Windows.UI.Xaml", LogLevel.Debug },
-					// { "Windows.UI.Xaml.VisualStateGroup", LogLevel.Debug },
-					// { "Windows.UI.Xaml.StateTriggerBase", LogLevel.Debug },
-					// { "Windows.UI.Xaml.UIElement", LogLevel.Debug },
+				// Debug JS interop
+				// builder.AddFilter("Uno.Foundation.WebAssemblyRuntime", LogLevel.Debug);
 
-					// Layouter specific messages
-					// { "Windows.UI.Xaml.Controls", LogLevel.Debug },
-					// { "Windows.UI.Xaml.Controls.Layouter", LogLevel.Debug },
-					// { "Windows.UI.Xaml.Controls.Panel", LogLevel.Debug },
-					// { "Windows.Storage", LogLevel.Debug },
+				// Generic Xaml events
+				//builder.AddFilter("Windows.UI.Xaml", LogLevel.Debug);
+				//builder.AddFilter("Windows.UI.Xaml.VisualStateGroup", LogLevel.Debug);
+				//builder.AddFilter("Windows.UI.Xaml.StateTriggerBase", LogLevel.Debug);
+				//builder.AddFilter("Windows.UI.Xaml.UIElement", LogLevel.Debug);
 
-					// Binding related messages
-					// { "Windows.UI.Xaml.Data", LogLevel.Debug },
+				// Layouter specific messages
+				// builder.AddFilter("Windows.UI.Xaml.Controls", LogLevel.Debug);
+				// builder.AddFilter("Windows.UI.Xaml.Controls.Layouter", LogLevel.Debug);
+				// builder.AddFilter("Windows.UI.Xaml.Controls.Panel", LogLevel.Debug);
+				// builder.AddFilter("Windows.Storage", LogLevel.Debug);
 
-					// DependencyObject memory references tracking
-					// { "ReferenceHolder", LogLevel.Debug },
+				// Binding related messages
+				// builder.AddFilter("Windows.UI.Xaml.Data", LogLevel.Debug);
 
-					// ListView-related messages
-					// { "Windows.UI.Xaml.Controls.ListViewBase", LogLevel.Debug },
-					// { "Windows.UI.Xaml.Controls.ListView", LogLevel.Debug },
-					// { "Windows.UI.Xaml.Controls.GridView", LogLevel.Debug },
-					// { "Windows.UI.Xaml.Controls.VirtualizingPanelLayout", LogLevel.Debug },
-					// { "Windows.UI.Xaml.Controls.NativeListViewBase", LogLevel.Debug },
-					// { "Windows.UI.Xaml.Controls.ListViewBaseSource", LogLevel.Debug }, //iOS
-					// { "Windows.UI.Xaml.Controls.ListViewBaseInternalContainer", LogLevel.Debug }, //iOS
-					// { "Windows.UI.Xaml.Controls.NativeListViewBaseAdapter", LogLevel.Debug }, //Android
-					// { "Windows.UI.Xaml.Controls.BufferViewCache", LogLevel.Debug }, //Android
-					// { "Windows.UI.Xaml.Controls.VirtualizingPanelGenerator", LogLevel.Debug }, //WASM
-					}
-				)
-#if DEBUG
-				.AddConsole(LogLevel.Debug);
-#else
-				.AddConsole(LogLevel.Information);
-#endif
+				// DependencyObject memory references tracking
+				// builder.AddFilter("ReferenceHolder", LogLevel.Debug);
+
+				// ListView-related messages
+				// builder.AddFilter("Windows.UI.Xaml.Controls.ListViewBase", LogLevel.Debug);
+				// builder.AddFilter("Windows.UI.Xaml.Controls.ListView", LogLevel.Debug);
+				// builder.AddFilter("Windows.UI.Xaml.Controls.GridView", LogLevel.Debug);
+				// builder.AddFilter("Windows.UI.Xaml.Controls.VirtualizingPanelLayout", LogLevel.Debug);
+				// builder.AddFilter("Windows.UI.Xaml.Controls.NativeListViewBase", LogLevel.Debug);
+				// builder.AddFilter("Windows.UI.Xaml.Controls.ListViewBaseSource", LogLevel.Debug); //iOS
+				// builder.AddFilter("Windows.UI.Xaml.Controls.ListViewBaseInternalContainer", LogLevel.Debug); //iOS
+				// builder.AddFilter("Windows.UI.Xaml.Controls.NativeListViewBaseAdapter", LogLevel.Debug); //Android
+				// builder.AddFilter("Windows.UI.Xaml.Controls.BufferViewCache", LogLevel.Debug); //Android
+				// builder.AddFilter("Windows.UI.Xaml.Controls.VirtualizingPanelGenerator", LogLevel.Debug); //WASM
+
+			});
 		}
 	}
 }
