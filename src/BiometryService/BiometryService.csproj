@@ -10,7 +10,7 @@
 		<Description>A unified API for biometry on iOS, Android, and Windows.</Description>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<GenerateLibraryLayout>true</GenerateLibraryLayout>
-		<PackageTags>biometry;FaceID;TouchID;Fingerprint;mvvm;maui;winui;ios;android;xamarin</PackageTags>
+		<PackageTags>biometry;FaceID;TouchID;Fingerprint;mvvm;maui;winui;ios;android</PackageTags>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/nventive/BiometryService</PackageProjectUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>

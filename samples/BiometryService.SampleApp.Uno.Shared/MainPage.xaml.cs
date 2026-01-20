@@ -84,7 +84,7 @@ namespace BiometryService.SampleApp.Uno
 			promptBuilder
 		);
 #endif
-#if WINDOWS_UWP || WINDOWS
+#if WINDOWS
 		_biometryService = new BiometryService();
 #endif
 

@@ -36,7 +36,7 @@ namespace BiometryService.SampleApp.Uno
 #else
 			CurrentWindow = Microsoft.UI.Xaml.Window.Current;
 #endif
-
+			Instance = this;
 			Frame rootFrame = CurrentWindow.Content as Frame;
 
 			// Do not repeat app initialization when the Window already has content,
