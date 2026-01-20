@@ -11,7 +11,7 @@ variables:
 - name: ArtifactName
   value: Packages
 - name: SolutionFileName # Example: MyApplication.sln
-  value: BiometryService.sln
+  value: BiometryService.slnx
 - name: IsReleaseBranch # Should this branch name use the release stage
   value: $[or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/feature/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'))]
 - name:  AppCenterAndroidSlug
@@ -25,7 +25,7 @@ variables:
 - name:  InternalKeystore
   value: com.nventive.internal.applicationtemplate.jks
 - name: windowsHostedAgentImage
-  value: 'windows-2022'
+  value: 'windows-2025'
 
 stages:
 - stage: Build
