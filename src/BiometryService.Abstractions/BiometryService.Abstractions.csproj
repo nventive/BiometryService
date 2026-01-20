@@ -1,11 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<LangVersion>11.0</LangVersion>
+		<LangVersion>14.0</LangVersion>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>BiometryService</RootNamespace>
 		<Authors>nventive</Authors>
 		<Company>nventive</Company>
 		<AssemblyName>BiometryService.Abstractions</AssemblyName>
+		<GenerateLibraryLayout>true</GenerateLibraryLayout>
 		<PackageId>BiometryService.Abstractions</PackageId>
 		<Description>A unified API for biometry on iOS, Android, and Windows.</Description>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -25,7 +26,7 @@
 
 	<!-- Needed for Source Link support. -->
 	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
 	</ItemGroup>
 
 	<ItemGroup>

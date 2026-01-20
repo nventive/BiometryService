@@ -25,7 +25,7 @@ variables:
 - name:  InternalKeystore
   value: com.nventive.internal.applicationtemplate.jks
 - name: windowsHostedAgentImage
-  value: 'windows-2022'
+  value: 'windows-2025'
 
 stages:
 - stage: Build

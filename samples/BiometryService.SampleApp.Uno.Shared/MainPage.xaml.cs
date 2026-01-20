@@ -51,8 +51,7 @@ namespace BiometryService.SampleApp.Uno
 			_biometryService = new BiometryService(
 				"Biometrics_Confirm",
 				laContext,
-				LAPolicy.DeviceOwnerAuthentication,
-				App.Instance.LoggerFactory);
+				LAPolicy.DeviceOwnerAuthentication);
 #endif
 
 			//Note that not all combinations of authenticator types are supported prior to Android 11 (API 30). Specifically, DEVICE_CREDENTIAL alone is unsupported prior to API 30, and BIOMETRIC_STRONG | DEVICE_CREDENTIAL is unsupported on API 28-29
@@ -82,12 +81,11 @@ namespace BiometryService.SampleApp.Uno
 
 		_biometryService = new BiometryService(
 			MainActivity.Instance,
-			promptBuilder,
-			App.Instance.LoggerFactory
+			promptBuilder
 		);
 #endif
 #if WINDOWS_UWP || WINDOWS
-		_biometryService = new BiometryService(App.Instance.LoggerFactory);
+		_biometryService = new BiometryService();
 #endif
 
 			_ = LoadCapabilities(_cancellationToken);
